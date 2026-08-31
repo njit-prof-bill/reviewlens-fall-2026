@@ -7,8 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project slug for default tags"
   type        = string
-  default     = "reviewlens
-"
+  default     = "reviewlens"
 }
 
 variable "environment_name" {

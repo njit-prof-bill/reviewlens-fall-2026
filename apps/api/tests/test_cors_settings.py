@@ -26,8 +26,7 @@ def _build_app_with_settings(settings: Settings) -> FastAPI:
 def test_cors_allows_wildcard_pages_origin(monkeypatch):
     monkeypatch.setenv(
         "CORS_ORIGINS",
-        "https://*.reviewlens
--9p8.pages.dev,http://localhost:5173",
+        "https://*.reviewlens-9p8.pages.dev,http://localhost:5173",
     )
     settings = Settings()
     app = _build_app_with_settings(settings)
@@ -35,23 +34,20 @@ def test_cors_allows_wildcard_pages_origin(monkeypatch):
 
     response = client.get(
         "/health",
-        headers={"Origin": "https://a0eb8e9c.reviewlens
--9p8.pages.dev"},
+        headers={"Origin": "https://a0eb8e9c.reviewlens-9p8.pages.dev"},
     )
 
     assert response.status_code == 200
     assert (
         response.headers.get("access-control-allow-origin")
-        == "https://a0eb8e9c.reviewlens
--9p8.pages.dev"
+        == "https://a0eb8e9c.reviewlens-9p8.pages.dev"
     )
 
 
 def test_cors_rejects_non_matching_wildcard_origin(monkeypatch):
     monkeypatch.setenv(
         "CORS_ORIGINS",
-        "https://*.reviewlens
--9p8.pages.dev,http://localhost:5173",
+        "https://*.reviewlens-9p8.pages.dev,http://localhost:5173",
     )
     settings = Settings()
     app = _build_app_with_settings(settings)
@@ -59,8 +55,7 @@ def test_cors_rejects_non_matching_wildcard_origin(monkeypatch):
 
     response = client.get(
         "/health",
-        headers={"Origin": "https://example.not-reviewlens
-.pages.dev"},
+        headers={"Origin": "https://example.not-reviewlens.pages.dev"},
     )
 
     assert response.status_code == 200
@@ -69,21 +64,18 @@ def test_cors_rejects_non_matching_wildcard_origin(monkeypatch):
 
 def test_cors_origin_regex_extends_allowlist(monkeypatch):
     monkeypatch.setenv("CORS_ORIGINS", "http://localhost:5173")
-    monkeypatch.setenv("CORS_ORIGIN_REGEX", r"^https://staging\.reviewlens
-\.com$")
+    monkeypatch.setenv("CORS_ORIGIN_REGEX", r"^https://staging\.reviewlens\.com$")
     settings = Settings()
     app = _build_app_with_settings(settings)
     client = TestClient(app)
 
     response = client.get(
         "/health",
-        headers={"Origin": "https://staging.reviewlens
-.com"},
+        headers={"Origin": "https://staging.reviewlens.com"},
     )
 
     assert response.status_code == 200
     assert (
         response.headers.get("access-control-allow-origin")
-        == "https://staging.reviewlens
-.com"
+        == "https://staging.reviewlens.com"
     )

@@ -45,15 +45,11 @@ fi
 # shellcheck disable=SC1091
 source "${CONFIG_PATH}"
 
-APP_SLUG="${APP_SLUG:-reviewlens
-}"
-APP_DISPLAY_NAME="${APP_DISPLAY_NAME:-ReviewLens
-}"
-API_NAME="${API_NAME:-reviewlens-api
-}"
+APP_SLUG="${APP_SLUG:-reviewlens}"
+APP_DISPLAY_NAME="${APP_DISPLAY_NAME:-ReviewLens}"
+API_NAME="${API_NAME:-reviewlens-api}"
 API_VERSION="${API_VERSION:-0.1.0}"
-AWS_ROLE_NAME="${AWS_ROLE_NAME:-github-actions-reviewlens
--deploy}"
+AWS_ROLE_NAME="${AWS_ROLE_NAME:-github-actions-reviewlens-deploy}"
 
 if [[ -z "${APP_SLUG}" || -z "${APP_DISPLAY_NAME}" || -z "${API_NAME}" ]]; then
   echo "APP_SLUG, APP_DISPLAY_NAME, and API_NAME must be set in scaffold.env" >&2

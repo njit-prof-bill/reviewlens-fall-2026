@@ -55,8 +55,7 @@ class TestVersionEndpoint:
         data = response.json()
         assert "name" in data
         assert "version" in data
-        assert data["name"] == "reviewlens-api
-"
+        assert data["name"] == "reviewlens-api"
         assert data["version"] == "0.1.0"
 
     def test_version_response_schema(self, client):

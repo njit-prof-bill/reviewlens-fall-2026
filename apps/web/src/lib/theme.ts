@@ -3,8 +3,7 @@ import { appSlug } from '@/lib/branding'
 
 type Theme = 'light' | 'dark' | 'system'
 
-const LEGACY_THEME_STORAGE_KEY = 'reviewlens
--theme'
+const LEGACY_THEME_STORAGE_KEY = 'reviewlens-theme'
 const THEME_STORAGE_KEY = `${appSlug}-theme`
 
 function getStoredTheme(): Theme | null {
