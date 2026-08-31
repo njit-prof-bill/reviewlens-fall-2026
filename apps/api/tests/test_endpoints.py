@@ -1,8 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
-
 from app.auth import get_current_auth_identity
 from app.main import app
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -308,8 +307,8 @@ class TestMeEndpoint:
         self, client, db_session, monkeypatch
     ):
         """When JWT claims omit profile fields, /api/me should enrich from Clerk API."""
-        from app.db.session import get_db_session
         import app.routes as routes_module
+        from app.db.session import get_db_session
 
         def _mock_identity():
             return {

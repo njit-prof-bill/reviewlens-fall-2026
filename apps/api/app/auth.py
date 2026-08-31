@@ -1,6 +1,7 @@
 import json
 import logging
 from functools import lru_cache
+from typing import Annotated
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -96,7 +97,7 @@ def _decode_clerk_token(token: str) -> dict:
 
 
 def get_current_auth_identity(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> dict:
     if credentials is None:
         raise HTTPException(

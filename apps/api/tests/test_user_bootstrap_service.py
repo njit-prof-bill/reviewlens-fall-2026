@@ -1,9 +1,8 @@
-from sqlalchemy import select
-
 from app.db.models.user import User
 from app.db.models.workspace import Workspace
 from app.db.models.workspace_member import WorkspaceMember
 from app.services.user_bootstrap import get_or_create_local_user_with_default_workspace
+from sqlalchemy import select
 
 
 class TestUserBootstrapService:

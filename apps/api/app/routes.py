@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -41,7 +43,7 @@ async def version() -> VersionResponse:
 
 @router.get("/auth/me", response_model=AuthIdentityResponse)
 async def auth_me(
-    identity: dict = Depends(get_current_auth_identity),
+    identity: Annotated[dict, Depends(get_current_auth_identity)],
 ) -> AuthIdentityResponse:
     """Return the authenticated identity from the verified Clerk token."""
     return AuthIdentityResponse(
@@ -112,8 +114,8 @@ def _resolve_identity_profile(
 @router.get("/me", response_model=AppUserProfile)
 @canonical_router.get("/me", response_model=AppUserProfile)
 async def me(
-    identity: dict = Depends(get_current_auth_identity),
-    db: Session = Depends(get_db_session),
+    identity: Annotated[dict, Depends(get_current_auth_identity)],
+    db: Annotated[Session, Depends(get_db_session)],
 ) -> AppUserProfile:
     """
     Return the authenticated app user profile from local persistence.

@@ -1,8 +1,7 @@
+from app.core.config import Settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-
-from app.core.config import Settings
 
 
 def _build_app_with_settings(settings: Settings) -> FastAPI:

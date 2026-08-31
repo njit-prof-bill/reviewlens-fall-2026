@@ -1,14 +1,16 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-import logging
 
 from app.core.config import settings
 from app.db import models  # noqa: F401 - ensure model metadata is registered
 from app.db.session import Base, engine
-from app.routes import canonical_router, router as v1_router
+from app.routes import canonical_router
+from app.routes import router as v1_router
 from app.schemas import ApiError, ApiErrorDetail, ApiErrorResponse
 
 # Configure logging
