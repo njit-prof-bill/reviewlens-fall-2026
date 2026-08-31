@@ -19,12 +19,12 @@ if [[ -f "${SCAFFOLD_ENV}" ]]; then
   source "${SCAFFOLD_ENV}"
 fi
 
-APP_SLUG="${APP_SLUG:-cornerstone}"
+APP_SLUG="${APP_SLUG:-reviewlens}"
 ENVIRONMENT_NAME="${ENVIRONMENT_NAME:-dev}"
 DATABASE_NAME="${DATABASE_NAME:-${APP_SLUG}}"
 SECRETS_PREFIX="${SECRETS_PREFIX:-${APP_SLUG}}"
 
-echo "=== Cornerstone AWS Bootstrap ==="
+echo "=== ReviewLens AWS Bootstrap ==="
 echo ""
 echo "This script creates:"
 echo "  - S3 bucket for Terraform state"

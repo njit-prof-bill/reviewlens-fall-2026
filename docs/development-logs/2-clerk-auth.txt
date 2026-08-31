@@ -1,8 +1,8 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 Clerk Authentication Development Log
 Date: 2026-05-07
-Repo: fourier-gauss-labs/cornerstone
+Repo: fourier-gauss-labs/reviewlens
 Branch: main
 
 Goal
@@ -176,16 +176,16 @@ end-to-end testing (sign-up, sign-in, sign-out, protected route verification).
 
 -------------------------------------------------------------------------------
 Date: 2026-06-05
-Topic: Replace Clerk-branded auth surfaces with Cornerstone-native auth pages
+Topic: Replace Clerk-branded auth surfaces with ReviewLens-native auth pages
 
 Goal
 Keep Clerk as identity/session infrastructure while replacing Clerk prebuilt
-UI components in normal auth/account flows with Cornerstone-styled pages.
+UI components in normal auth/account flows with ReviewLens-styled pages.
 
 Scope for this iteration
 - Keep Clerk provider/session infrastructure in place.
 - Replace SignIn/SignUp prebuilt Clerk components with custom forms.
-- Replace header UserButton with Cornerstone account/sign-out controls.
+- Replace header UserButton with ReviewLens account/sign-out controls.
 - Add protected account route at /settings/account.
 - Keep backend /api/me behavior unchanged for app context.
 - Keep account management lightweight: identity display + sign-out.
@@ -201,7 +201,7 @@ Implementation details
 	- loading state shown while Clerk initializes
 
 2) Custom sign-in page
-- Replaced Clerk <SignIn /> with a Cornerstone-styled card form.
+- Replaced Clerk <SignIn /> with a ReviewLens-styled card form.
 - Uses Clerk hooks for auth operations (email/password):
 	- useAuth for session redirect behavior
 	- useSignIn for create + setActive flow
@@ -209,7 +209,7 @@ Implementation details
 - Authenticated users hitting /sign-in are redirected to /.
 
 3) Custom sign-up page
-- Replaced Clerk <SignUp /> with a Cornerstone-styled card form.
+- Replaced Clerk <SignUp /> with a ReviewLens-styled card form.
 - Uses Clerk hooks for registration operations (email/password):
 	- useAuth for session redirect behavior
 	- useSignUp for create + setActive flow
@@ -225,7 +225,7 @@ Implementation details
 - Added sign-out action using Clerk signOut API with redirect to /sign-in.
 
 5) App shell integration
-- Replaced header Clerk UserButton with Cornerstone-native controls:
+- Replaced header Clerk UserButton with ReviewLens-native controls:
 	- Account button -> /settings/account
 	- Sign out button using Clerk signOut
 - Added Account entry to left navigation.
@@ -311,7 +311,7 @@ Date: 2026-06-05
 Topic: OAuth provider buttons (Google, Apple, Microsoft)
 
 Goal
-- Expose OAuth provider sign-in/sign-up options in Cornerstone-owned auth pages.
+- Expose OAuth provider sign-in/sign-up options in ReviewLens-owned auth pages.
 
 Changes made
 1) Added provider buttons to custom Sign In page.

@@ -1,8 +1,8 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # API Conventions
 
-Cornerstone uses REST.
+ReviewLens uses REST.
 
 Success responses should use:
 

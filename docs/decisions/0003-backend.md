@@ -1,4 +1,4 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # 0003: Backend Operational Architecture and CI Baseline
 
@@ -14,7 +14,7 @@ At the same time, repository CI only validated directory structure and did not e
 
 ## Decision A: Clerk JWT Verification in API Runtime
 
-Cornerstone verifies Clerk bearer tokens in API runtime using JWKS and `PyJWT` instead of delegating request-path token verification to a Clerk SDK.
+ReviewLens verifies Clerk bearer tokens in API runtime using JWKS and `PyJWT` instead of delegating request-path token verification to a Clerk SDK.
 
 Details:
 
@@ -30,7 +30,7 @@ Rationale:
 
 ## Decision B: Hybrid API Route Strategy
 
-Cornerstone uses a hybrid route strategy:
+ReviewLens uses a hybrid route strategy:
 
 - Canonical app-shell identity endpoint: `/api/me` (unversioned).
 - Versioned resource and diagnostic endpoints remain under `/api/v1/*`.
@@ -115,7 +115,7 @@ Rationale:
 
 ## Decision H: CORS Wildcard Origin Support (2026-05-14)
 
-Cornerstone backend now supports wildcard CORS origins (e.g. `https://*.your-project.pages.dev`) via the `CORS_ORIGINS` environment variable, enabling seamless integration with Cloudflare Pages preview deployments and similar ephemeral frontend URLs.
+ReviewLens backend now supports wildcard CORS origins (e.g. `https://*.your-project.pages.dev`) via the `CORS_ORIGINS` environment variable, enabling seamless integration with Cloudflare Pages preview deployments and similar ephemeral frontend URLs.
 
 Rationale:
 

@@ -3,9 +3,9 @@
 
 aws_region = "us-east-1"
 environment_name = "dev"
-project_name = "cornerstone"
-database_name = "cornerstone"
-tf_lock_table_name = "cornerstone-tf-lock"
+project_name = "reviewlens"
+database_name = "reviewlens"
+tf_lock_table_name = "reviewlens-tf-lock"
 
 # Clerk
 clerk_jwks_url          = "https://your-instance.clerk.accounts.com/.well-known/jwks.json"

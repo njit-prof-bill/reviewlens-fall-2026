@@ -1,8 +1,8 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 FastAPI Backend Development Log
 Date: 2026-05-07
-Repo: fourier-gauss-labs/cornerstone
+Repo: fourier-gauss-labs/reviewlens
 Branch: main
 
 Goal
@@ -123,7 +123,7 @@ Actions:
 - Support for environment variable overrides:
   - CORS_ORIGINS (comma-separated list of allowed origins)
 - Created apps/api/.env.example with:
-  - APP_NAME=cornerstone-api
+  - APP_NAME=reviewlens-api
   - APP_VERSION=0.1.0
   - CORS_ORIGINS=http://localhost:5173,...
 - Updated apps/api/app/main.py to use settings.cors_origins
@@ -141,7 +141,7 @@ Actions:
 - Module import check: app.main loads successfully with all 3 versioned routes
 - Verified no editor errors in apps/api
 - Confirmed app metadata and route registration:
-  - Title: cornerstone-api
+  - Title: reviewlens-api
   - Version: 0.1.0
   - Routes: /api/v1/health, /api/v1/ready, /api/v1/version
 
@@ -172,4 +172,4 @@ Files Changed
 - docs/development-logs/3-fastapi.txt (this file)
 
 Project Summary
-Cornerstone now has a production-ready FastAPI backend scaffold with versioned API routes, comprehensive test coverage, and environment-based configuration. The service is callable at /api/v1/* with health, readiness, and version endpoints. Error responses are structured and CORS is configured for local frontend development. The test suite validates endpoint responses, error shapes, and CORS functionality. All code follows the repo's Python standards: type hints, Pydantic schemas, and explicit business logic separation.
+ReviewLens now has a production-ready FastAPI backend scaffold with versioned API routes, comprehensive test coverage, and environment-based configuration. The service is callable at /api/v1/* with health, readiness, and version endpoints. Error responses are structured and CORS is configured for local frontend development. The test suite validates endpoint responses, error shapes, and CORS functionality. All code follows the repo's Python standards: type hints, Pydantic schemas, and explicit business logic separation.

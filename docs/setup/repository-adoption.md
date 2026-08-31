@@ -55,7 +55,7 @@ Example:
 APP_SLUG=acme-portal
 APP_DISPLAY_NAME="Acme Portal"
 API_NAME=acme-portal-api
-API_VERSION=0.1.0
+API_VERSION=0.1.0
 DATABASE_NAME=acme_portal
 AWS_PROFILE=acme-portal
 GITHUB_OWNER=your-org

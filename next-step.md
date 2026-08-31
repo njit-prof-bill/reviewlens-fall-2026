@@ -1,4 +1,4 @@
-# Cornerstone vNext Hardening Backlog
+# ReviewLens vNext Hardening Backlog
 
 ## Goal
 
@@ -297,7 +297,7 @@ Day 7:
 - Second dry run by different person
 - Freeze vNext and publish release notes
 
-## Definition of Done for Cornerstone vNext
+## Definition of Done for ReviewLens vNext
 
 - Fresh adopter can complete provision and deploy in one day or less
 - No manual console actions required on normal path

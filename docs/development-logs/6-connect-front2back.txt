@@ -1,4 +1,4 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 MILESTONE: Connect Frontend to Backend (Me Profile Endpoint)
 Date: May 9, 2026
@@ -9,7 +9,7 @@ Real logged-in landing page:
   - Frontend calls /api/me
   - Displays user name/email/avatar from backend persistence
   - Left nav/top nav remain generic
-  - Homepage says "Welcome to Cornerstone"
+  - Homepage says "Welcome to ReviewLens"
 
 Checkpoint:
   - Authenticated user sees data from backend
@@ -80,7 +80,7 @@ Frontend:
 
 CHECKPOINT ACHIEVED
 ✓ Authenticated user sees data from backend (name, email, avatar)
-✓ Homepage displays "Welcome to Cornerstone" with user profile
+✓ Homepage displays "Welcome to ReviewLens" with user profile
 ✓ Protected layout enforced (generic nav shells)
 ✓ No regressions in existing functionality
 
@@ -194,7 +194,7 @@ SOLUTION
     - Updated apps/api/app/services/clerk_profile.py fetch_clerk_user_profile()
     - Added three headers to Request object:
       * Authorization: Bearer {secret_key}  (existing)
-      * User-Agent: cornerstone-api/0.1.0  (new)
+      * User-Agent: reviewlens-api/0.1.0  (new)
       * Accept: application/json           (new)
 
   Code Change:
@@ -203,7 +203,7 @@ SOLUTION
         url=f"https://api.clerk.com/v1/users/{user_id}",
         headers={
             "Authorization": f"Bearer {secret_key}",
-            "User-Agent": "cornerstone-api/0.1.0",
+            "User-Agent": "reviewlens-api/0.1.0",
             "Accept": "application/json",
         },
         method="GET",

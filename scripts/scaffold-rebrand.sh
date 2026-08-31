@@ -45,11 +45,11 @@ fi
 # shellcheck disable=SC1091
 source "${CONFIG_PATH}"
 
-APP_SLUG="${APP_SLUG:-cornerstone}"
-APP_DISPLAY_NAME="${APP_DISPLAY_NAME:-Cornerstone}"
-API_NAME="${API_NAME:-cornerstone-api}"
+APP_SLUG="${APP_SLUG:-reviewlens}"
+APP_DISPLAY_NAME="${APP_DISPLAY_NAME:-ReviewLens}"
+API_NAME="${API_NAME:-reviewlens-api}"
 API_VERSION="${API_VERSION:-0.1.0}"
-AWS_ROLE_NAME="${AWS_ROLE_NAME:-github-actions-cornerstone-deploy}"
+AWS_ROLE_NAME="${AWS_ROLE_NAME:-github-actions-reviewlens-deploy}"
 
 if [[ -z "${APP_SLUG}" || -z "${APP_DISPLAY_NAME}" || -z "${API_NAME}" ]]; then
   echo "APP_SLUG, APP_DISPLAY_NAME, and API_NAME must be set in scaffold.env" >&2
@@ -87,11 +87,11 @@ while IFS= read -r file; do
   fi
 done < <(cd "${REPO_ROOT}" && git ls-files)
 
-src_cornerstone_api_esc="$(esc "cornerstone-api")"
-src_cornerstone_display_esc="$(esc "Cornerstone")"
-src_cornerstone_slug_esc="$(esc "cornerstone")"
-src_role_esc="$(esc "github-actions-cornerstone-deploy")"
-src_api_version_esc="$(esc "API_VERSION=0.1.0")"
+src_reviewlens_api_esc="$(esc "reviewlens-api")"
+src_reviewlens_display_esc="$(esc "ReviewLens")"
+src_reviewlens_slug_esc="$(esc "reviewlens")"
+src_role_esc="$(esc "github-actions-reviewlens-deploy")"
+src_api_version_esc="$(esc "API_VERSION=0.1.0")"
 
 dst_api_name_esc="$(esc "$API_NAME")"
 dst_display_name_esc="$(esc "$APP_DISPLAY_NAME")"
@@ -109,9 +109,9 @@ replace_in_file() {
 
   original_hash="$(sha256sum "$file" | awk '{print $1}')"
 
-  perl -0pi -e "s/${src_cornerstone_api_esc}/${dst_api_name_esc}/g" "$file"
-  perl -0pi -e "s/${src_cornerstone_display_esc}/${dst_display_name_esc}/g" "$file"
-  perl -0pi -e "s/${src_cornerstone_slug_esc}/${dst_slug_esc}/g" "$file"
+  perl -0pi -e "s/${src_reviewlens_api_esc}/${dst_api_name_esc}/g" "$file"
+  perl -0pi -e "s/${src_reviewlens_display_esc}/${dst_display_name_esc}/g" "$file"
+  perl -0pi -e "s/${src_reviewlens_slug_esc}/${dst_slug_esc}/g" "$file"
   perl -0pi -e "s/${src_role_esc}/${dst_role_esc}/g" "$file"
   perl -0pi -e "s/${src_api_version_esc}/${dst_api_version_esc}/g" "$file"
 

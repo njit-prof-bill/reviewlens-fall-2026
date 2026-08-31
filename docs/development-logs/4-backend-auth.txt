@@ -1,4 +1,4 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 Development Log: 4-backend-auth
 Date: 2026-05-08
@@ -60,8 +60,8 @@ Scope: FastAPI backend auth verification with Clerk token trust and frontend tok
 
 8) Validation
 - Backend tests run from apps/api:
-  - /home/iambillmccann/repositories/cornerstone/.venv/bin/python -m pip install -e ".[dev]"
-  - /home/iambillmccann/repositories/cornerstone/.venv/bin/python -m pytest
+  - /home/iambillmccann/repositories/reviewlens/.venv/bin/python -m pip install -e ".[dev]"
+  - /home/iambillmccann/repositories/reviewlens/.venv/bin/python -m pytest
   - Result: 14 passed
 - Frontend build run from apps/web:
   - npm install
@@ -77,5 +77,5 @@ Outcome
 
 9) Handoff update (same day)
 - Re-checked current route file after subsequent edits: `apps/api/app/routes.py` still contains `GET /api/v1/auth/me` with Clerk identity dependency.
-- Updated repository memory notes for next session handoff in `/memories/repo/cornerstone.md` under "Backend Auth State (May 8, 2026)".
+- Updated repository memory notes for next session handoff in `/memories/repo/reviewlens.md` under "Backend Auth State (May 8, 2026)".
 - This log now reflects both implementation and handoff-ready verification status.

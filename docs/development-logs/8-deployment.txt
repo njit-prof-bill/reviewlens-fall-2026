@@ -1,4 +1,4 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 MILESTONE: Deploy Frontend (Cloudflare Pages)
 Date: May 12-14, 2026
@@ -99,7 +99,7 @@ IMPLEMENTATION
    - Command:
      PUBLIC_DB_URL=$(railway variable list --service Postgres --json | python -c "import sys,json; d=json.load(sys.stdin); print(d['DATABASE_PUBLIC_URL'])")
      DB_URL_SQLA=${PUBLIC_DB_URL/postgresql:\/\//postgresql+psycopg://}
-     railway run --no-local --service cornerstone -- env DATABASE_URL="$DB_URL_SQLA" alembic upgrade head
+     railway run --no-local --service reviewlens -- env DATABASE_URL="$DB_URL_SQLA" alembic upgrade head
 
 5. Environment Variables (Railway)
    - DATABASE_URL (internal, for API runtime)

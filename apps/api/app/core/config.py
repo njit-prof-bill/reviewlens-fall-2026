@@ -42,8 +42,8 @@ _load_local_env_files()
 
 
 LOCALHOST_ORIGIN_REGEX = r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
-DEFAULT_APP_SLUG = os.getenv("APP_SLUG", "cornerstone")
-DEFAULT_API_NAME = os.getenv("API_NAME", "cornerstone-api")
+DEFAULT_APP_SLUG = os.getenv("APP_SLUG", "reviewlens")
+DEFAULT_API_NAME = os.getenv("API_NAME", "reviewlens-api")
 DEFAULT_API_VERSION = os.getenv("API_VERSION", "0.1.0")
 DEFAULT_DATABASE_NAME = os.getenv("DATABASE_NAME", DEFAULT_APP_SLUG)
 

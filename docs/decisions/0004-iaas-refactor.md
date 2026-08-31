@@ -1,10 +1,10 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # 0004: Infrastructure as Code Deployment Adapter Model
 
 ## Decision
 
-Cornerstone will move from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit Infrastructure as Code (IaC) deployment orchestrated by GitHub Actions, starting with AWS as the first provider adapter.
+ReviewLens will move from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit Infrastructure as Code (IaC) deployment orchestrated by GitHub Actions, starting with AWS as the first provider adapter.
 
 ### Update: June 6, 2026 — Frontend Shell UX and PWA Baseline
 
@@ -14,7 +14,7 @@ The template baseline now also standardizes frontend shell behavior for authenti
 - Account-related actions live in a top-right avatar dropdown (Settings, Account, Sign out)
 - Sign-out action continues using Clerk signOut with redirect to /sign-in
 
-Cornerstone web is now configured as a Progressive Web App (PWA) using Vite PWA integration.
+ReviewLens web is now configured as a Progressive Web App (PWA) using Vite PWA integration.
 
 PWA policy for this template is online-first and auth-safe:
 
@@ -36,7 +36,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
      --url "https://token.actions.githubusercontent.com" \
      --client-id-list "sts.amazonaws.com" \
      --thumbprint-list "6938fd4d98bab03faadb97b34396831e3780aea1" \
-     --profile cornerstone
+     --profile reviewlens
    ```
 2. Create trust policy file (substitute your AWS account ID):
    ```json
@@ -51,7 +51,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
          "Action": "sts:AssumeRoleWithWebIdentity",
          "Condition": {
            "StringLike": {
-             "token.actions.githubusercontent.com:sub": "repo:fourier-gauss-labs/cornerstone:*"
+             "token.actions.githubusercontent.com:sub": "repo:fourier-gauss-labs/reviewlens:*"
            },
            "StringEquals": {
              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
@@ -63,17 +63,17 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
    ```
 3. Create IAM role:
    ```bash
-   aws iam create-role --role-name github-actions-cornerstone-deploy \
-     --assume-role-policy-document file:///tmp/cornerstone-github-trust.json \
-     --profile cornerstone --output json
+   aws iam create-role --role-name github-actions-reviewlens-deploy \
+     --assume-role-policy-document file:///tmp/reviewlens-github-trust.json \
+     --profile reviewlens --output json
    ```
 4. Attach permissions:
    ```bash
-   aws iam attach-role-policy --role-name github-actions-cornerstone-deploy \
+   aws iam attach-role-policy --role-name github-actions-reviewlens-deploy \
      --policy-arn arn:aws:iam::aws:policy/AdministratorAccess \
-     --profile cornerstone
+     --profile reviewlens
    ```
-5. Copy the role ARN (e.g., `arn:aws:iam::098295335350:role/github-actions-cornerstone-deploy`) and add as `AWS_ROLE_ARN` in GitHub repository secrets.
+5. Copy the role ARN (e.g., `arn:aws:iam::098295335350:role/github-actions-reviewlens-deploy`) and add as `AWS_ROLE_ARN` in GitHub repository secrets.
 
 ---
 
@@ -138,7 +138,7 @@ infra/providers/
 - Runs smoke tests (frontend root + backend health)
 - Uses backend image tags `sha-<GITHUB_SHA>` and `latest`
 - Reuses existing SHA-tagged backend images when available, with optional force rebuild override
-- Ensures `/cornerstone-dev/cors_origins` includes the current CloudFront origin before backend redeploy
+- Ensures `/reviewlens-dev/cors_origins` includes the current CloudFront origin before backend redeploy
 - Treats App Runner `ROLLBACK_SUCCEEDED` as terminal deployment failure in wait logic
 
 Implementation note:
@@ -215,7 +215,7 @@ The architecture is designed for future GCP and Azure adapters:
 ## Constraints & Assumptions
 
 - AWS account already exists with admin access
-- Clerk must be environment-isolated: `cornerstone-local` for local and `cornerstone-dev` for AWS dev
+- Clerk must be environment-isolated: `reviewlens-local` for local and `reviewlens-dev` for AWS dev
 - Native App Runner + CloudFront URLs used (custom domain optional, future enhancement)
 - Existing Railway/Cloudflare deployment remains intact during this phase
 - RDS is private and only accessible from backend service (security by design, not just acceptable for dev)
@@ -225,17 +225,17 @@ The architecture is designed for future GCP and Azure adapters:
 
 ### Clerk Environment Isolation
 
-Cornerstone local and cloud dev environments use separate databases and should therefore use separate Clerk applications to avoid cross-environment identity coupling.
+ReviewLens local and cloud dev environments use separate databases and should therefore use separate Clerk applications to avoid cross-environment identity coupling.
 
 Policy:
 
-- local: `cornerstone-local`
-- cloud dev: `cornerstone-dev`
+- local: `reviewlens-local`
+- cloud dev: `reviewlens-dev`
 
 Operational implications:
 
-- local env files carry only `cornerstone-local` values
-- cloud dev provisioning inputs and AWS-managed config carry only `cornerstone-dev` values
+- local env files carry only `reviewlens-local` values
+- cloud dev provisioning inputs and AWS-managed config carry only `reviewlens-dev` values
 - Clerk allowed origins and redirect URLs must be configured per environment and never shared
 
 ## Cost Implications

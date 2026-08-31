@@ -1,8 +1,8 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # Deployment Validation
 
-Cornerstone is not intended to operate as a production application.
+ReviewLens is not intended to operate as a production application.
 
 Deployment exists to validate:
 
@@ -15,4 +15,4 @@ Deployment exists to validate:
 - health checks
 - teardown
 
-Applications created from Cornerstone may define their own production environment model.
+Applications created from ReviewLens may define their own production environment model.

@@ -1,6 +1,6 @@
-const DEFAULT_APP_SLUG = 'cornerstone'
-const DEFAULT_APP_DISPLAY_NAME = 'Cornerstone'
-const DEFAULT_API_NAME = 'cornerstone-api'
+const DEFAULT_APP_SLUG = 'reviewlens'
+const DEFAULT_APP_DISPLAY_NAME = 'ReviewLens'
+const DEFAULT_API_NAME = 'reviewlens-api'
 
 export const appSlug = import.meta.env.VITE_APP_SLUG?.trim() || DEFAULT_APP_SLUG
 export const appDisplayName =

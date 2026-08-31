@@ -1,8 +1,8 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
-# Cornerstone API
+# ReviewLens API
 
-FastAPI backend for the Cornerstone project.
+FastAPI backend for the ReviewLens project.
 
 ## Run locally
 
@@ -73,7 +73,7 @@ alembic upgrade head
 
 Create environment variables from the repo root `.env.example` and ensure `DATABASE_URL` points to the local PostgreSQL container:
 
-`postgresql+psycopg://postgres:postgres@localhost:5432/cornerstone`
+`postgresql+psycopg://postgres:postgres@localhost:5432/reviewlens`
 
 Auth-related settings:
 

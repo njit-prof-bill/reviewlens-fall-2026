@@ -1,10 +1,10 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # 0001: Initial Technology Stack
 
 ## Decision
 
-Cornerstone will use the following initial stack:
+ReviewLens will use the following initial stack:
 
 - React
 - TypeScript
@@ -26,4 +26,4 @@ Cornerstone will use the following initial stack:
 
 ## Notes
 
-Cornerstone is a reusable application template, not a production product. Deployment exists primarily to validate integration, CI/CD, and teardown.
+ReviewLens is a reusable application template, not a production product. Deployment exists primarily to validate integration, CI/CD, and teardown.

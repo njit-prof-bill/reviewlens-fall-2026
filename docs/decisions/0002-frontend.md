@@ -1,10 +1,10 @@
-This document contains references to Cornerstone
+This document contains references to ReviewLens
 
 # 0002: shadcn/ui Component Composition Pattern
 
 ## Decision
 
-Cornerstone uses shadcn/ui components via **composition wrapper pattern** to isolate customizations and protect against breaking changes during upstream updates.
+ReviewLens uses shadcn/ui components via **composition wrapper pattern** to isolate customizations and protect against breaking changes during upstream updates.
 
 ## Pattern
 
@@ -98,11 +98,11 @@ This pattern applies to all shadcn/ui components in the project. For custom comp
 
 This design honors shadcn's philosophy of "copy-paste library" while adding maintainability guardrails appropriate for a reusable template.
 
-## 2026-06-05 Addendum: Cornerstone-Owned Auth UI with Clerk Infrastructure
+## 2026-06-05 Addendum: ReviewLens-Owned Auth UI with Clerk Infrastructure
 
 ### Decision
 
-Cornerstone uses Clerk for identity/session infrastructure but owns the user-facing auth/account UX through Cornerstone-native pages and shell controls.
+ReviewLens uses Clerk for identity/session infrastructure but owns the user-facing auth/account UX through ReviewLens-native pages and shell controls.
 
 ### Adopted Route Pattern
 
@@ -116,9 +116,9 @@ Cornerstone uses Clerk for identity/session infrastructure but owns the user-fac
 
 ### What Changed
 
-- Replaced Clerk prebuilt auth components in normal flow (`<SignIn />`, `<SignUp />`, `<UserButton />`) with custom Cornerstone UI.
+- Replaced Clerk prebuilt auth components in normal flow (`<SignIn />`, `<SignUp />`, `<UserButton />`) with custom ReviewLens UI.
 - Implemented custom sign-in/sign-up forms using Clerk React hooks and session activation APIs.
-- Added Cornerstone-styled account page at `/settings/account` showing Clerk identity basics and sign-out.
+- Added ReviewLens-styled account page at `/settings/account` showing Clerk identity basics and sign-out.
 - Kept existing protected layout behavior and redirects.
 
 ### Boundaries and Constraints
@@ -133,7 +133,7 @@ Cornerstone uses Clerk for identity/session infrastructure but owns the user-fac
 
 - Removes external vendor-branded auth surfaces from primary product UX.
 - Preserves mature Clerk identity/session infrastructure and backend JWT validation contract.
-- Keeps Cornerstone reusable and branding-neutral while minimizing auth/security risk.
+- Keeps ReviewLens reusable and branding-neutral while minimizing auth/security risk.
 
 ### Scope Limits for This Iteration
 
@@ -179,7 +179,7 @@ When loading app context via `/api/me`, frontend requests a fresh Clerk token (`
 
 #### Decision
 
-Cornerstone auth pages include first-party OAuth provider actions for Google, Apple, and Microsoft using Clerk redirect APIs.
+ReviewLens auth pages include first-party OAuth provider actions for Google, Apple, and Microsoft using Clerk redirect APIs.
 
 #### Route/flow
 
