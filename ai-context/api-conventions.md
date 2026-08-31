@@ -1,8 +1,10 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # API Conventions
 
-ReviewLens uses REST.
+ReviewLens
+ uses REST.
 
 Success responses should use:
 

@@ -1,8 +1,10 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # AWS Infrastructure Adapter
 
-Deploy ReviewLens to AWS using Terraform and GitHub Actions.
+Deploy ReviewLens
+ to AWS using Terraform and GitHub Actions.
 
 ## Workflow Contract
 
@@ -47,12 +49,15 @@ cd infra/providers/aws/scripts
 bash bootstrap-state.sh
 
 # This script:
-# - Creates S3 bucket for Terraform state (reviewlens-tf-state-{account-id})
+# - Creates S3 bucket for Terraform state (reviewlens
+-tf-state-{account-id})
 # - Enables versioning and encryption
 # - Creates DynamoDB lock table
 # - Creates AWS Secrets Manager secrets:
-#   - reviewlens-database-url (RDS password TBD, placeholder for now)
-#   - reviewlens-clerk-secret-key (from CLERK_SECRET_KEY env var)
+#   - reviewlens
+-database-url (RDS password TBD, placeholder for now)
+#   - reviewlens
+-clerk-secret-key (from CLERK_SECRET_KEY env var)
 # - Outputs secret ARNs for use in terraform.tfvars
 ```
 
@@ -128,7 +133,8 @@ In your GitHub repository settings, add the following secrets:
 
 Note: Current workflows take most deployment values as manual workflow inputs, not repository secrets.
 
-Important: `AWS_ROLE_ARN` must be the full IAM role ARN, for example `arn:aws:iam::123456789012:role/github-actions-reviewlens-deploy`. Do not put the role name by itself into the GitHub secret. If Terraform manages the role, use the `github_actions_role_arn` output.
+Important: `AWS_ROLE_ARN` must be the full IAM role ARN, for example `arn:aws:iam::123456789012:role/github-actions-reviewlens
+-deploy`. Do not put the role name by itself into the GitHub secret. If Terraform manages the role, use the `github_actions_role_arn` output.
 
 ### Step 6: Deploy
 
@@ -196,7 +202,8 @@ See AWS documentation for detailed OIDC setup: https://docs.github.com/en/action
 
 ### Repo-Local Shell Variables
 
-For ReviewLens-specific shell variables, source [scripts/aws-env.sh](../../../../scripts/aws-env.sh) from the repo root instead of editing `~/.bashrc`:
+For ReviewLens
+-specific shell variables, source [scripts/aws-env.sh](../../../../scripts/aws-env.sh) from the repo root instead of editing `~/.bashrc`:
 
 ```bash
 source scripts/aws-env.sh
@@ -220,7 +227,8 @@ This keeps `AWS_PROFILE`, `AWS_REGION`, `GITHUB_OWNER`, `GITHUB_REPO`, and `ROLE
 ```bash
 cd infra/providers/aws/terraform/environments/dev
 aws apprunner pause-service --service-arn <app-runner-arn>
-aws rds stop-db-instance --db-instance-identifier reviewlens-dev
+aws rds stop-db-instance --db-instance-identifier reviewlens
+-dev
 # Empty S3 bucket
 aws s3 rm s3://<bucket-name> --recursive
 ```

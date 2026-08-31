@@ -1,4 +1,5 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 
 MILESTONE: Infrastructure as Code Refactor (IaC / AWS / Terraform)
@@ -6,13 +7,16 @@ Date: May 18–20, 2026
 Status: Step 1 Complete (AWS OIDC trust)
 
 GOAL
-Move ReviewLens from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit IaC-driven
+Move ReviewLens
+ from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit IaC-driven
 deployments using Terraform-managed AWS infrastructure, starting with AWS as the first cloud provider adapter.
 
 DECISION RATIONALE
-- ReviewLens is a template, not a production product. Deployment must be reproducible, testable, and easy to tear down.
+- ReviewLens
+ is a template, not a production product. Deployment must be reproducible, testable, and easy to tear down.
 - Platform-pull deployments (auto-deploy on push) are designed for continuously running SaaS products, not templates.
-- Explicit IaC (Terraform + GitHub Actions) gives ReviewLens operators full visibility and control.
+- Explicit IaC (Terraform + GitHub Actions) gives ReviewLens
+ operators full visibility and control.
 - Provider-adapter architecture enables future GCP/Azure support without changing application code.
 - Pause/resume capability (App Runner + RDS) allows cost-effective dev environment validation.
 
@@ -44,9 +48,11 @@ FILES CREATED (May 18, 2026)
 STEP 1: AWS Account + OIDC Trust (Manual, Complete)
 
 - Created OIDC provider for GitHub Actions:
-  aws iam create-open-id-connect-provider --url "https://token.actions.githubusercontent.com" --client-id-list "sts.amazonaws.com" --thumbprint-list "6938fd4d98bab03faadb97b34396831e3780aea1" --profile reviewlens
+  aws iam create-open-id-connect-provider --url "https://token.actions.githubusercontent.com" --client-id-list "sts.amazonaws.com" --thumbprint-list "6938fd4d98bab03faadb97b34396831e3780aea1" --profile reviewlens
+
 - Created trust policy file for GitHub role (see 0004-iaas-refactor.md)
-- Created IAM role github-actions-reviewlens-deploy with trust policy
+- Created IAM role github-actions-reviewlens
+-deploy with trust policy
 - Attached AdministratorAccess policy to role
 - Captured role ARN and added as AWS_ROLE_ARN in GitHub repository secrets
 
@@ -156,8 +162,10 @@ Operator note:
 UPDATE: May 24, 2026 — Clerk Environment Isolation Reset
 
 ✓ Documented environment-isolated Clerk policy:
-  - `reviewlens-local` for local development
-  - `reviewlens-dev` for AWS dev
+  - `reviewlens
+-local` for local development
+  - `reviewlens
+-dev` for AWS dev
 
 ✓ Added reset/rebuild runbook in docs/operations/cloud-development.md:
   - local teardown and DB reset
@@ -171,13 +179,15 @@ UPDATE: May 24, 2026 — Clerk Environment Isolation Reset
 UPDATE: May 26–27, 2026 — Reprovision and Deploy Hardening
 
 Context:
-- Full dev destroy/reprovision cycle was executed with a new `reviewlens-dev` Clerk configuration.
+- Full dev destroy/reprovision cycle was executed with a new `reviewlens
+-dev` Clerk configuration.
 - Terraform provision reached App Runner `CREATE_FAILED` after infrastructure creation.
 - Deploy workflow later timed out while waiting for App Runner despite rollback already completing.
 
 Findings:
 - App Runner create failed when ECR repository existed but had no image (`latest` tag missing).
-- Backend startup failed during deploy rollback due to stale `reviewlens-database-url` secret content and missing SSL mode.
+- Backend startup failed during deploy rollback due to stale `reviewlens
+-database-url` secret content and missing SSL mode.
 - Smoke test failure at deploy end was caused by missing `access-control-allow-origin` for the CloudFront origin.
 - Deploy wait loop treated `FAILED` and `ROLLBACK_FAILED` as terminal but not `ROLLBACK_SUCCEEDED`, causing false timeout messaging.
 
@@ -189,7 +199,8 @@ Implemented fixes:
 
 - `deploy-dev.yml`
   - Updated App Runner wait logic to treat `ROLLBACK_SUCCEEDED` as terminal failure state.
-  - Added CORS parameter reconciliation step to ensure current CloudFront origin is present in `/reviewlens-dev/cors_origins` before backend redeploy.
+  - Added CORS parameter reconciliation step to ensure current CloudFront origin is present in `/reviewlens
+-dev/cors_origins` before backend redeploy.
 
 Operational result:
 - App Runner service recovered to `RUNNING` after DB secret correction and redeploy.
@@ -205,7 +216,8 @@ UPDATE: June 5, 2026 — Cloud Status Script
   - For aws: sources scripts/aws-env.sh and queries App Runner for services matching the project name prefix
   - For azure/gcp: prints "Cloud vendor <name> Not yet supported"
   - Resource name filter derived from GITHUB_REPO in aws-env.sh rather than hardcoded string, so the
-    script works correctly in apps built from the ReviewLens template without modification
+    script works correctly in apps built from the ReviewLens
+ template without modification
 
 UPDATE: June 6, 2026 — Frontend Navigation UX + PWA Baseline
 

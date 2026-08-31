@@ -1,12 +1,16 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
 
-# ReviewLens
 
-ReviewLens is a reusable application template for small SaaS products.
+# ReviewLens
+
+
+ReviewLens
+ is a reusable application template for small SaaS products.
 
 It provides the common foundation for future apps, including layout conventions, authentication wiring, API structure, database setup, CI/CD validation, and deployment plumbing.
 
-ReviewLens is not itself a production product. Its purpose is to validate and preserve the reusable starting point for future applications.
+ReviewLens
+ is not itself a production product. Its purpose is to validate and preserve the reusable starting point for future applications.
 
 ---
 
@@ -35,7 +39,8 @@ For a full step-by-step adoption path from fresh clone to local and AWS deployme
 ./scripts/scaffold-rebrand.sh
 ```
 
-By default, all values remain set to ReviewLens so current behavior, tests, and deployments are unchanged.
+By default, all values remain set to ReviewLens
+ so current behavior, tests, and deployments are unchanged.
 
 ---
 
@@ -91,7 +96,9 @@ Run local development with three running processes:
 
 Important auth isolation rule:
 
-- Use separate Clerk apps per environment (`reviewlens-local` and `reviewlens-dev`).
+- Use separate Clerk apps per environment (`reviewlens
+-local` and `reviewlens
+-dev`).
 - Do not point local and cloud dev at the same Clerk app.
 - If separation was not done initially, follow reset runbook in `docs/operations/cloud-development.md`.
 
@@ -200,7 +207,8 @@ Use local `terraform.tfvars` files for environment values and secrets, and keep 
 | `scripts/dev-db-down.sh`                    | Stop the local PostgreSQL container                                                                                    |
 | `scripts/dev-db-reset.sh`                   | Wipe and recreate the local database                                                                                   |
 
-`cloud-status.sh` is template-portable: it derives the resource name prefix from `GITHUB_REPO` in `aws-env.sh`, so apps built from ReviewLens only need to update that one variable.
+`cloud-status.sh` is template-portable: it derives the resource name prefix from `GITHUB_REPO` in `aws-env.sh`, so apps built from ReviewLens
+ only need to update that one variable.
 
 ## AWS Manual Setup Notes
 
@@ -269,7 +277,8 @@ Deploy workflow inputs:
 
 Deploy workflow behavior notes:
 
-- Ensures `/reviewlens-dev/cors_origins` contains the current CloudFront origin before App Runner deployment.
+- Ensures `/reviewlens
+-dev/cors_origins` contains the current CloudFront origin before App Runner deployment.
 - Treats App Runner `ROLLBACK_SUCCEEDED` as a terminal deployment failure state (fail-fast instead of timing out).
 
 Teardown workflow inputs:
@@ -312,8 +321,10 @@ This repository does not use a CloudFormation stack or AWS CDK stack to group re
 Instead, AWS resources are organized by:
 
 - Terraform state in `infra/providers/aws/terraform/environments/dev`
-- Consistent naming with the `reviewlens-dev-*` prefix
-- Shared AWS tags such as `Project=reviewlens`, `Environment=dev`, and `ManagedBy=terraform`
+- Consistent naming with the `reviewlens
+-dev-*` prefix
+- Shared AWS tags such as `Project=reviewlens
+`, `Environment=dev`, and `ManagedBy=terraform`
 
 That means full teardown will be driven by `terraform destroy`, not by deleting a single AWS stack.
 

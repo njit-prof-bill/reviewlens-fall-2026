@@ -5,7 +5,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
-API_NAME = os.getenv("API_NAME", os.getenv("APP_NAME", "reviewlens-api"))
+API_NAME = os.getenv("API_NAME", os.getenv("APP_NAME", "reviewlens-api
+"))
 API_VERSION = os.getenv("API_VERSION", "0.1.0")
 
 

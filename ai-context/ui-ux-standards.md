@@ -1,10 +1,13 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
 
-# UI/UX Standards — ReviewLens Frontend
+
+# UI/UX Standards — ReviewLens
+ Frontend
 
 ## Overview
 
-ReviewLens uses **Tailwind CSS** for styling, **shadcn/ui** for component primitives, and **composition wrappers** for customization safety. This document establishes baseline conventions to keep the frontend maintainable and extensible.
+ReviewLens
+ uses **Tailwind CSS** for styling, **shadcn/ui** for component primitives, and **composition wrappers** for customization safety. This document establishes baseline conventions to keep the frontend maintainable and extensible.
 
 ## Component Architecture
 

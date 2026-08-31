@@ -1,6 +1,8 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
 
-# 0005: ReviewLens Reference Residual Audit
+
+# 0005: ReviewLens
+ Reference Residual Audit
 
 ## Status
 
@@ -12,7 +14,10 @@ Accepted
 
 ## Context
 
-ReviewLens is a template scaffold. References to ReviewLens must be replaceable for downstream applications without breaking current ReviewLens behavior, tests, or deployments.
+ReviewLens
+ is a template scaffold. References to ReviewLens
+ must be replaceable for downstream applications without breaking current ReviewLens
+ behavior, tests, or deployments.
 
 A first implementation pass parameterized runtime/build/infra/workflow naming and added a rename script. This decision records the second hardening pass and a residual-reference audit.
 
@@ -33,7 +38,12 @@ The rename utility [scripts/scaffold-rebrand.sh](../../scripts/scaffold-rebrand.
 
 3. Made replacements deterministic and source-anchored:
 
-- Replaces from canonical source literals (`ReviewLens`, `reviewlens`, `reviewlens-api`, `github-actions-reviewlens-deploy`, `API_VERSION=0.1.0`).
+- Replaces from canonical source literals (`ReviewLens
+`, `reviewlens
+`, `reviewlens-api
+`, `github-actions-reviewlens
+-deploy`, `API_VERSION=0.1.0
+`).
 - No longer derives the source role-name pattern from target values.
 
 4. Added safe escaping for replacement values:
@@ -44,18 +54,24 @@ The rename utility [scripts/scaffold-rebrand.sh](../../scripts/scaffold-rebrand.
 
 ### Method
 
-Audit search used case-sensitive matches for `ReviewLens|reviewlens` across tracked repository content, excluding `.git`, `.venv`, `.terraform`, and `node_modules` for the top-level total.
+Audit search used case-sensitive matches for `ReviewLens
+|reviewlens
+` across tracked repository content, excluding `.git`, `.venv`, `.terraform`, and `node_modules` for the top-level total.
 
 ### Summary Table
 
 | Category                                                          | Count | Intent                            | Representative references                                                                                                                                                                                                                                                                                                                      | Disposition                                                                                                       |
 | ----------------------------------------------------------------- | ----: | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Canonical defaults and parameter anchors                          |    55 | Intentional                       | [scaffold.env](../../scaffold.env), [.env.example](../../.env.example), [apps/web/vite.config.ts](../../apps/web/vite.config.ts), [.github/workflows/deploy-dev.yml](../../.github/workflows/deploy-dev.yml), [infra/providers/aws/terraform/environments/dev/variables.tf](../../infra/providers/aws/terraform/environments/dev/variables.tf) | Keep as default baseline for backward compatibility; replace via scaffold/env/workflow inputs for downstream apps |
-| ReviewLens-specific docs (non-log)                               |   112 | Intentional                       | [README.md](../../README.md), [docs/decisions/0004-iaas-refactor.md](0004-iaas-refactor.md), [docs/setup/authentication.md](../setup/authentication.md), [infra/providers/aws/README.md](../../infra/providers/aws/README.md)                                                                                                                  | Keep; all such docs now include required marker line                                                              |
-| Marker lines (`This document contains references to ReviewLens`) |    27 | Intentional policy marker         | [README.md](../../README.md), [docs/architecture/overview.md](../architecture/overview.md), [ai-context/product-brief.md](../../ai-context/product-brief.md)                                                                                                                                                                                   | Keep exactly as required by policy                                                                                |
+| ReviewLens
+-specific docs (non-log)                               |   112 | Intentional                       | [README.md](../../README.md), [docs/decisions/0004-iaas-refactor.md](0004-iaas-refactor.md), [docs/setup/authentication.md](../setup/authentication.md), [infra/providers/aws/README.md](../../infra/providers/aws/README.md)                                                                                                                  | Keep; all such docs now include required marker line                                                              |
+| Marker lines (`This document contains references to ReviewLens
+`) |    27 | Intentional policy marker         | [README.md](../../README.md), [docs/architecture/overview.md](../architecture/overview.md), [ai-context/product-brief.md](../../ai-context/product-brief.md)                                                                                                                                                                                   | Keep exactly as required by policy                                                                                |
 | Historical development logs                                       |    47 | Intentional historical record     | [docs/development-logs/9-iaas-refactor.txt](../development-logs/9-iaas-refactor.txt), [docs/development-logs/3-fastapi.txt](../development-logs/3-fastapi.txt)                                                                                                                                                                                 | Keep for traceability/history                                                                                     |
 | Test fixtures and assertions                                      |     9 | Intentional verification baseline | [apps/api/tests/test_endpoints.py](../../apps/api/tests/test_endpoints.py), [apps/api/tests/test_cors_settings.py](../../apps/api/tests/test_cors_settings.py)                                                                                                                                                                                 | Keep to validate default scaffold identity behavior                                                               |
-| Generated tracked artifacts                                       |    17 | Intentional derived output        | [apps/web/dist/index.html](../../apps/web/dist/index.html), [apps/web/dist/manifest.webmanifest](../../apps/web/dist/manifest.webmanifest), [apps/web/dist/sw.js](../../apps/web/dist/sw.js), [apps/api/reviewlens_api.egg-info/PKG-INFO](../../apps/api/reviewlens_api.egg-info/PKG-INFO)                                                   | Keep in sync with source defaults; regenerated on build/package steps                                             |
+| Generated tracked artifacts                                       |    17 | Intentional derived output        | [apps/web/dist/index.html](../../apps/web/dist/index.html), [apps/web/dist/manifest.webmanifest](../../apps/web/dist/manifest.webmanifest), [apps/web/dist/sw.js](../../apps/web/dist/sw.js), [apps/api/reviewlens
+_api.egg-info/PKG-INFO](../../apps/api/reviewlens
+_api.egg-info/PKG-INFO)                                                   | Keep in sync with source defaults; regenerated on build/package steps                                             |
 | Live environment-specific tfvars secret ARNs                      |     2 | Intentional deployment binding    | [infra/providers/aws/terraform/environments/dev/terraform.tfvars](../../infra/providers/aws/terraform/environments/dev/terraform.tfvars)                                                                                                                                                                                                       | Keep for current deployed environment; expected to differ per fork/environment                                    |
 
 ### Top-Level Residual Count
@@ -66,8 +82,10 @@ Audit search used case-sensitive matches for `ReviewLens|reviewlens` across tr
 
 Residual references are acceptable when they are one of:
 
-1. Canonical default values needed to preserve current ReviewLens behavior.
-2. ReviewLens-specific documentation/history where references are accurate context.
+1. Canonical default values needed to preserve current ReviewLens
+ behavior.
+2. ReviewLens
+-specific documentation/history where references are accurate context.
 3. Generated artifacts derived from current default naming.
 4. Environment-bound deployment values (for the existing dev environment).
 
@@ -76,5 +94,6 @@ No additional blanket replacement is approved beyond these categories.
 ## Consequences
 
 1. New applications can rebrand by updating [scaffold.env](../../scaffold.env) and running [scripts/scaffold-rebrand.sh](../../scripts/scaffold-rebrand.sh).
-2. ReviewLens continues to run unchanged with current defaults.
+2. ReviewLens
+ continues to run unchanged with current defaults.
 3. Future audits should treat this table as the residual allowlist baseline.

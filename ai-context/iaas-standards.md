@@ -1,12 +1,15 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # IaaS / Deployment Standards
 
 ## Purpose
 
-ReviewLens infrastructure must support repeatable cloud deployment, validation, and teardown.
+ReviewLens
+ infrastructure must support repeatable cloud deployment, validation, and teardown.
 
-ReviewLens is not a production product. Its cloud deployment exists to validate that applications built from the template can be provisioned, deployed, tested, and destroyed safely.
+ReviewLens
+ is not a production product. Its cloud deployment exists to validate that applications built from the template can be provisioned, deployed, tested, and destroyed safely.
 
 ## Core Principles
 
@@ -15,7 +18,8 @@ ReviewLens is not a production product. Its cloud deployment exists to validate
 - Keep application code cloud-neutral.
 - Keep provider-specific code isolated under `infra/providers/<provider>`.
 - Make teardown a first-class workflow.
-- Avoid permanently running infrastructure for ReviewLens unless explicitly required.
+- Avoid permanently running infrastructure for ReviewLens
+ unless explicitly required.
 - Do not introduce Kubernetes.
 - Do not build a private platform layer.
 - Optimize for clarity and repeatability over maximum cloud feature usage.
@@ -94,17 +98,20 @@ Production tags should point to the same commit previously validated as a releas
 
 ## Environment Standards
 
-ReviewLens implements only:
+ReviewLens
+ implements only:
 
 - local development
 - cloud development
 
-Applications built from ReviewLens may later add:
+Applications built from ReviewLens
+ may later add:
 
 - staging
 - production
 
-Do not implement staging or production inside ReviewLens unless explicitly requested.
+Do not implement staging or production inside ReviewLens
+ unless explicitly requested.
 
 ## AWS Adapter Expectations
 
@@ -147,7 +154,8 @@ Avoid:
   - preserve database
   - reset schema
 
-For ReviewLens cloud development, disposable database state is acceptable unless otherwise specified.
+For ReviewLens
+ cloud development, disposable database state is acceptable unless otherwise specified.
 
 ## Smoke Test Standards
 
@@ -164,7 +172,8 @@ Every deployed cloud-dev environment should validate:
 
 - Prefer resources that can scale to zero or be destroyed.
 - Keep default instance sizes minimal.
-- Do not provision production-grade redundancy for ReviewLens.
+- Do not provision production-grade redundancy for ReviewLens
+.
 - Any always-on cost must be explicitly justified.
 - Document estimated monthly cost for idle and active cloud-dev usage.
 

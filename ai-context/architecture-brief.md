@@ -1,8 +1,10 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # Architecture Brief
 
-ReviewLens uses a React/Vite frontend and a FastAPI backend.
+ReviewLens
+ uses a React/Vite frontend and a FastAPI backend.
 
 The backend exposes a REST API documented with OpenAPI.
 

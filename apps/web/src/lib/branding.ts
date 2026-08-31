@@ -1,6 +1,9 @@
-const DEFAULT_APP_SLUG = 'reviewlens'
-const DEFAULT_APP_DISPLAY_NAME = 'ReviewLens'
-const DEFAULT_API_NAME = 'reviewlens-api'
+const DEFAULT_APP_SLUG = 'reviewlens
+'
+const DEFAULT_APP_DISPLAY_NAME = 'ReviewLens
+'
+const DEFAULT_API_NAME = 'reviewlens-api
+'
 
 export const appSlug = import.meta.env.VITE_APP_SLUG?.trim() || DEFAULT_APP_SLUG
 export const appDisplayName =

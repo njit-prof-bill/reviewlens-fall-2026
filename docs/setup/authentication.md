@@ -1,4 +1,5 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # Authentication Setup (Clerk)
 
@@ -6,12 +7,15 @@ This guide walks through creating a Clerk app from scratch, wiring local environ
 
 ## Environment Isolation Policy
 
-ReviewLens should not share one Clerk application between local and cloud environments.
+ReviewLens
+ should not share one Clerk application between local and cloud environments.
 
 Use two Clerk apps:
 
-- `reviewlens-local` for local development only
-- `reviewlens-dev` for AWS dev environment only
+- `reviewlens
+-local` for local development only
+- `reviewlens
+-dev` for AWS dev environment only
 
 Reason:
 
@@ -23,11 +27,13 @@ Reason:
 1. Go to https://dashboard.clerk.com/sign-up.
 2. Create your account and verify your email.
 3. In the Clerk dashboard, create a new application:
-   - Name: `reviewlens-local`
+   - Name: `reviewlens
+-local`
    - Sign-in options: enable `Email + Password`
 4. Complete the initial setup wizard.
 
-If cloud dev is in use, create a second application named `reviewlens-dev` with equivalent sign-in options.
+If cloud dev is in use, create a second application named `reviewlens
+-dev` with equivalent sign-in options.
 
 ## 2. Collect required keys from Clerk
 
@@ -46,7 +52,8 @@ At repository root, create a local env file from the example if needed:
 cp .env.example .env.local
 ```
 
-Set these values in `.env.local` for the `reviewlens-local` app:
+Set these values in `.env.local` for the `reviewlens
+-local` app:
 
 - `CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
@@ -70,11 +77,13 @@ Note:
 - `VITE_CLERK_PUBLISHABLE_KEY` is the value the React app reads at build/runtime.
 - `CLERK_SECRET_KEY` must stay server-side only.
 
-## Cloud Dev Mapping (`reviewlens-dev`)
+## Cloud Dev Mapping (`reviewlens
+-dev`)
 
 For AWS `dev`, do not copy local files.
 
-Provide `reviewlens-dev` values through `.github/workflows/provision-dev.yml` inputs:
+Provide `reviewlens
+-dev` values through `.github/workflows/provision-dev.yml` inputs:
 
 - `clerk_jwks_url`
 - `clerk_issuer` (optional)
@@ -88,12 +97,14 @@ Then deploy with `.github/workflows/deploy-dev.yml`, which reads the publishable
 
 Set Clerk dashboard URLs per app and do not mix environments.
 
-`reviewlens-local`:
+`reviewlens
+-local`:
 
 - Allowed origins: localhost variants only (`http://localhost:5173`, etc.)
 - Redirect URLs: localhost frontend and local callback paths
 
-`reviewlens-dev`:
+`reviewlens
+-dev`:
 
 - Allowed origins: CloudFront URL only
 - Redirect URLs: CloudFront and App Runner URLs for the dev environment

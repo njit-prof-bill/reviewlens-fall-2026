@@ -1,4 +1,5 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 I’d drive this in **vertical slices**.
 
@@ -19,7 +20,8 @@ Goal: a clean React app.
 Checkpoint:
 
 ```text
-localhost:5173 shows generic ReviewLens shell
+localhost:5173 shows generic ReviewLens
+ shell
 ```
 
 ## 2. Add Clerk to the frontend
@@ -101,7 +103,8 @@ Goal: real logged-in landing page.
 - frontend calls `/api/me`
 - displays user name/email/avatar if available
 - left nav/top nav remain generic
-- homepage says something like “Welcome to ReviewLens”
+- homepage says something like “Welcome to ReviewLens
+”
 
 Checkpoint:
 
@@ -175,7 +178,8 @@ public URL → register/login → protected empty homepage with navigation
 - All vertical slices (frontend, Clerk auth, backend, persistence, CI, deployment) are implemented and validated.
 - CORS is now robust: wildcard origin support for Cloudflare Pages preview deploys, no more manual edits needed.
 - All tests passing, CI green, and both frontend/backend are live and integrated.
-- See /memories/repo/reviewlens-milestone-1.md for a full summary.
+- See /memories/repo/reviewlens
+-milestone-1.md for a full summary.
 
 ## Closeout Notes (2026-05-17)
 

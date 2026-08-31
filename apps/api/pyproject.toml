@@ -1,7 +1,9 @@
 [project]
-name = "reviewlens-api"
+name = "reviewlens-api
+"
 version = "0.1.0"
-description = "ReviewLens FastAPI backend"
+description = "ReviewLens
+ FastAPI backend"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -26,27 +26,32 @@ on:
       app_slug:
         description: Application slug used for resource naming
         required: true
-        default: reviewlens
+        default: reviewlens
+
         type: string
       api_name:
         description: API name expected in version smoke check
         required: true
-        default: reviewlens-api
+        default: reviewlens-api
+
         type: string
       app_display_name:
         description: Display name for frontend manifest/title
         required: true
-        default: ReviewLens
+        default: ReviewLens
+
         type: string
       app_description:
         description: Frontend app description
         required: true
-        default: ReviewLens SaaS template
+        default: ReviewLens
+ SaaS template
         type: string
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: reviewlens-tf-lock
+        default: reviewlens
+-tf-lock
         type: string
       force_backend_rebuild:
         description: Force backend image rebuild even if current commit SHA tag already exists in ECR

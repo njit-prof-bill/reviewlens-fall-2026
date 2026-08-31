@@ -1,4 +1,5 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # Cloud Development Operations
 
@@ -81,8 +82,10 @@ Use this runbook when local development and cloud dev were pointed at the same C
 
 Goal:
 
-- `reviewlens-local` Clerk app drives local development only.
-- `reviewlens-dev` Clerk app drives AWS `dev` environment only.
+- `reviewlens
+-local` Clerk app drives local development only.
+- `reviewlens
+-dev` Clerk app drives AWS `dev` environment only.
 - Local PostgreSQL and cloud RDS remain independent, with auth identities isolated per environment.
 
 ### 1) Local Teardown
@@ -129,9 +132,12 @@ Post-run checks:
 
 In Clerk dashboard:
 
-1. Delete old shared ReviewLens app.
-2. Create `reviewlens-local`.
-3. Create `reviewlens-dev`.
+1. Delete old shared ReviewLens
+ app.
+2. Create `reviewlens
+-local`.
+3. Create `reviewlens
+-dev`.
 
 For each app, capture:
 
@@ -143,7 +149,8 @@ For each app, capture:
 
 ### 4) Reconfigure Environment Values
 
-Local (`reviewlens-local`):
+Local (`reviewlens
+-local`):
 
 - `.env.local`:
   - `CLERK_PUBLISHABLE_KEY`
@@ -160,11 +167,13 @@ Local (`reviewlens-local`):
   - optional `CLERK_AUDIENCE`
   - local `CORS_ORIGINS`
 
-Cloud dev (`reviewlens-dev`):
+Cloud dev (`reviewlens
+-dev`):
 
 1. Rotate/update AWS Secrets Manager entries used by Terraform inputs:
    - `clerk_secret_key_arn` target secret value
-2. Run `.github/workflows/provision-dev.yml` with `reviewlens-dev` values:
+2. Run `.github/workflows/provision-dev.yml` with `reviewlens
+-dev` values:
    - `clerk_jwks_url`
    - optional `clerk_issuer`
    - optional `clerk_audience`
@@ -175,22 +184,26 @@ Cloud dev (`reviewlens-dev`):
 
 Clerk dashboard URL/origin alignment:
 
-- `reviewlens-local` allowed origins + redirects: localhost URLs only.
-- `reviewlens-dev` allowed origins + redirects: CloudFront + App Runner URLs only.
+- `reviewlens
+-local` allowed origins + redirects: localhost URLs only.
+- `reviewlens
+-dev` allowed origins + redirects: CloudFront + App Runner URLs only.
 
 ### 5) Rebuild Upward
 
 Local first:
 
 1. Start DB/API/web locally.
-2. Log in via `reviewlens-local`.
+2. Log in via `reviewlens
+-local`.
 3. Verify first authenticated call creates local user/workspace records.
 
 Cloud dev second:
 
 1. Run `provision-dev.yml` (if needed for config/state refresh).
 2. Run `deploy-dev.yml`.
-3. Log in via `reviewlens-dev`.
+3. Log in via `reviewlens
+-dev`.
 4. Verify first authenticated call creates cloud-dev user/workspace records.
 
 Success criteria:

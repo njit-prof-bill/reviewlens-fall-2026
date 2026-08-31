@@ -13,19 +13,22 @@ variable "environment_name" {
 variable "project_name" {
   description = "Project slug used for resource name prefixes"
   type        = string
-  default     = "reviewlens"
+  default     = "reviewlens
+"
 }
 
 variable "database_name" {
   description = "Logical database name"
   type        = string
-  default     = "reviewlens"
+  default     = "reviewlens
+"
 }
 
 variable "tf_lock_table_name" {
   description = "DynamoDB table used for Terraform backend state locking"
   type        = string
-  default     = "reviewlens-tf-lock"
+  default     = "reviewlens
+-tf-lock"
 }
 
 # Clerk Configuration

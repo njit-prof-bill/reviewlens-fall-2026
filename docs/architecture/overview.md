@@ -1,8 +1,10 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # Architecture Overview
 
-ReviewLens uses a modular monorepo structure.
+ReviewLens
+ uses a modular monorepo structure.
 
 The default architecture is:
 
@@ -19,6 +21,8 @@ The default architecture is:
 - Terraform (provider adapter model) for cloud infrastructure
 - GitHub Actions for CI/CD validation
 
-ReviewLens is designed as a serverless-friendly modular monolith. Domain boundaries should be clear, but deployment should remain simple until an application justifies additional operational complexity.
+ReviewLens
+ is designed as a serverless-friendly modular monolith. Domain boundaries should be clear, but deployment should remain simple until an application justifies additional operational complexity.
 
-ReviewLens's infrastructure is organized using a provider adapter structure under `infra/providers/{provider}`. AWS is implemented today, while additional provider adapters (GCP/Azure) are planned to preserve portability without changing application-layer contracts.
+ReviewLens
+'s infrastructure is organized using a provider adapter structure under `infra/providers/{provider}`. AWS is implemented today, while additional provider adapters (GCP/Azure) are planned to preserve portability without changing application-layer contracts.

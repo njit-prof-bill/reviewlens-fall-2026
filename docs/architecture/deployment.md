@@ -1,12 +1,15 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 # Deployment Architecture (AWS Provider Adapter)
 
-This document describes ReviewLens's cloud deployment architecture and how the infrastructure remains portable across providers.
+This document describes ReviewLens
+'s cloud deployment architecture and how the infrastructure remains portable across providers.
 
 ## Provider Adapter Model
 
-ReviewLens uses a provider adapter approach under `infra/providers/{provider}`.
+ReviewLens
+ uses a provider adapter approach under `infra/providers/{provider}`.
 
 - `infra/providers/aws`: implemented and active
 - `infra/providers/gcp`: planned
@@ -28,7 +31,8 @@ Current AWS adapter (`infra/providers/aws`) provisions:
 
 ## Environment Lifecycle
 
-ReviewLens defines two lifecycle operations for cloud dev:
+ReviewLens
+ defines two lifecycle operations for cloud dev:
 
 1. Provision: create/update resources via Terraform (`provision-dev.yml`)
 2. Deploy: ship backend/frontend artifacts to provisioned resources (`deploy-dev.yml`)

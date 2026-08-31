@@ -34,12 +34,14 @@ name: teardown-dev
       app_slug:
         description: Application slug used for resource naming
         required: true
-        default: reviewlens
+        default: reviewlens
+
         type: string
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: reviewlens-tf-lock
+        default: reviewlens
+-tf-lock
         type: string
       confirm_destroy:
         description: Required only for destroy mode. Enter DESTROY

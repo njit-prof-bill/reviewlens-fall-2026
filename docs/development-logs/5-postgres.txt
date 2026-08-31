@@ -1,4 +1,5 @@
-This document contains references to ReviewLens
+This document contains references to ReviewLens
+
 
 Development Log: 5-postgres
 Date: 2026-05-08
@@ -36,7 +37,8 @@ Scope: Add local PostgreSQL persistence foundation for FastAPI backend (SQLAlche
 4) Database configuration
 - Added apps/api/app/core/config.py with:
   - database_url setting
-  - default local URL: postgresql+psycopg://postgres:postgres@localhost:5432/reviewlens
+  - default local URL: postgresql+psycopg://postgres:postgres@localhost:5432/reviewlens
+
   - env overrides for DATABASE_URL, CLERK_* and CORS_ORIGINS
 
 5) SQLAlchemy persistence layer

@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'node:path'
 
-const appSlug = process.env.VITE_APP_SLUG || 'reviewlens'
-const appDisplayName = process.env.VITE_APP_DISPLAY_NAME || 'ReviewLens'
+const appSlug = process.env.VITE_APP_SLUG || 'reviewlens
+'
+const appDisplayName = process.env.VITE_APP_DISPLAY_NAME || 'ReviewLens
+'
 const appDescription = process.env.VITE_APP_DESCRIPTION || `${appDisplayName} SaaS template`
 
 // https://vite.dev/config/
