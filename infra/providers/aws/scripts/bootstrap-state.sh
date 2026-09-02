@@ -14,9 +14,14 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCAFFOLD_ENV="${SCRIPT_DIR}/../../../../scaffold.env"
+CALLER_AWS_PROFILE="${AWS_PROFILE:-}"
 if [[ -f "${SCAFFOLD_ENV}" ]]; then
   # shellcheck disable=SC1091
   source "${SCAFFOLD_ENV}"
+fi
+
+if [[ -n "${CALLER_AWS_PROFILE}" ]]; then
+  AWS_PROFILE="${CALLER_AWS_PROFILE}"
 fi
 
 APP_SLUG="${APP_SLUG:-reviewlens
