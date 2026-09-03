@@ -181,7 +181,8 @@ jobs:
           terraform init -input=false \
             -backend-config="bucket=${TF_STATE_BUCKET}" \
             -backend-config="key=${TF_STATE_KEY:-dev/terraform.tfstate}" \
-            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}"
+            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}" \
+            -backend-config="region=${AWS_REGION}"
 
       - name: Terraform validate
         working-directory: infra/providers/aws/terraform/environments/dev
