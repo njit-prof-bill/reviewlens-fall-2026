@@ -162,14 +162,14 @@ resource "aws_iam_role_policy" "execution_configuration" {
     Statement = [{
       Effect = "Allow"
       Action = ["secretsmanager:GetSecretValue", "ssm:GetParameter", "ssm:GetParameters"]
-      Resource = [
+      Resource = compact([
         var.clerk_secret_key_arn,
         var.database_url_arn,
         var.clerk_jwks_url_param_arn,
         var.cors_origins_param_arn,
         var.clerk_issuer_param_arn,
         var.clerk_audience_param_arn,
-      ]
+      ])
     }]
   })
 }
