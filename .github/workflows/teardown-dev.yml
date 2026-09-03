@@ -40,8 +40,7 @@ name: teardown-dev
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: reviewlens
--tf-lock
+        default: reviewlens-tf-lock
         type: string
       confirm_destroy:
         description: Required only for destroy mode. Enter DESTROY
@@ -126,7 +125,8 @@ jobs:
           terraform init -input=false \
             -backend-config="bucket=${TF_STATE_BUCKET}" \
             -backend-config="key=${TF_STATE_KEY}" \
-            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}"
+            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}" \
+            -backend-config="region=${AWS_REGION}"
 
       - name: Resolve deployment targets
         if: ${{ inputs.mode == 'pause' }}
