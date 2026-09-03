@@ -233,6 +233,40 @@ jobs:
 
           echo "Using CORS origins: ${next_origins}"
 
+      - name: Sync DATABASE_URL secret from RDS
+        if: ${{ env.BACKEND_PLATFORM == 'ecs' }}
+        run: |
+          db_instance_id="${APP_SLUG}-${ENVIRONMENT_NAME}-db"
+          master_secret_arn=$(aws rds describe-db-instances \
+            --db-instance-identifier "${db_instance_id}" \
+            --query 'DBInstances[0].MasterUserSecret.SecretArn' \
+            --output text)
+          db_endpoint=$(aws rds describe-db-instances \
+            --db-instance-identifier "${db_instance_id}" \
+            --query 'DBInstances[0].Endpoint.Address' \
+            --output text)
+          db_name=$(aws rds describe-db-instances \
+            --db-instance-identifier "${db_instance_id}" \
+            --query 'DBInstances[0].DBName' \
+            --output text)
+          db_username=$(aws secretsmanager get-secret-value \
+            --secret-id "${master_secret_arn}" \
+            --query 'SecretString' \
+            --output text \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["username"])')
+          db_password=$(aws secretsmanager get-secret-value \
+            --secret-id "${master_secret_arn}" \
+            --query 'SecretString' \
+            --output text \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["password"])')
+          encoded_password=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "${db_password}")
+          database_url="postgresql+psycopg://${db_username}:${encoded_password}@${db_endpoint}:5432/${db_name}?sslmode=require"
+
+          aws secretsmanager update-secret \
+            --secret-id "$(terraform -chdir=infra/providers/aws/terraform/environments/dev output -raw database_url_secret_arn)" \
+            --secret-string "${database_url}" >/dev/null
+          echo "DATABASE_URL secret synced from live RDS instance"
+
       - name: Ensure App Runner service is RUNNING
         if: ${{ env.BACKEND_PLATFORM == 'app_runner' }}
         run: |
