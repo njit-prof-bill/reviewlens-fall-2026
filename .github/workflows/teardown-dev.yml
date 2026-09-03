@@ -133,57 +133,18 @@ jobs:
         id: infra
         working-directory: infra/providers/aws/terraform/environments/dev
         run: |
-          echo "app_runner_service_arn=$(terraform output -raw app_runner_service_arn 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
-          echo "app_runner_service_url=$(terraform output -raw app_runner_service_url 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
-          echo "ecs_cluster_name=$(terraform output -raw ecs_cluster_name 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
-          echo "ecs_service_name=$(terraform output -raw ecs_service_name 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+          echo "ecs_cluster_name=$(terraform output -raw ecs_cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "ecs_service_name=$(terraform output -raw ecs_service_name)" >> "$GITHUB_OUTPUT"
           echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_domain_name=$(terraform output -raw cloudfront_domain_name)" >> "$GITHUB_OUTPUT"
           echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> "$GITHUB_OUTPUT"
-
-      - name: Pause App Runner service
-        if: ${{ inputs.mode == 'pause' }}
-        run: |
-          service_arn="${{ steps.infra.outputs.app_runner_service_arn }}"
-          if [[ -z "$service_arn" || "$service_arn" == "null" ]]; then
-            echo "No App Runner service is managed for this environment; skipping."
-            exit 0
-          fi
-
-          operation_id=$(aws apprunner pause-service \
-            --service-arn "$service_arn" \
-            --query 'OperationId' \
-            --output text)
-
-          for attempt in $(seq 1 60); do
-            status=$(aws apprunner list-operations \
-              --service-arn "${{ steps.infra.outputs.app_runner_service_arn }}" \
-              --query "OperationSummaryList[?Id=='${operation_id}']|[0].Status" \
-              --output text)
-
-            if [[ "$status" == "SUCCEEDED" ]]; then
-              break
-            fi
-
-            if [[ "$status" == "FAILED" || "$status" == "ROLLBACK_FAILED" ]]; then
-              echo "Pause operation failed with status: $status" >&2
-              exit 1
-            fi
-
-            sleep 10
-          done
 
       - name: Scale ECS service to zero
         if: ${{ inputs.mode == 'pause' }}
         run: |
           cluster_name="${{ steps.infra.outputs.ecs_cluster_name }}"
           service_name="${{ steps.infra.outputs.ecs_service_name }}"
-          if [[ -z "$cluster_name" || -z "$service_name" || "$cluster_name" == "null" || "$service_name" == "null" ]]; then
-            echo "No ECS service is managed for this environment; skipping."
-            exit 0
-          fi
-
           aws ecs update-service \
             --cluster "$cluster_name" \
             --service "$service_name" \
