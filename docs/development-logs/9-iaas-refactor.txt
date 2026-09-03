@@ -251,3 +251,24 @@ Validation outcome:
 - npm run typecheck: pass
 - npm run build: pass
 - PWA build artifacts generated (manifest.webmanifest, sw.js, workbox runtime)
+
+UPDATE: September 2, 2026 - ECS Backend Migration Started
+
+Context:
+- AWS rejected creation of the new ReviewLens App Runner service because the account has reached its two-service regional App Runner limit.
+- AWS no longer accepts new App Runner customers, so ECS is the replacement path for new environments.
+
+Implemented:
+- Added a parallel ECS Fargate module with private API/migration tasks, scoped execution roles, CloudWatch logs, a public ALB, and ALB health checks at /api/v1/health.
+- Reused the existing ECR repository, RDS, VPC/subnets, Secrets Manager entries, and SSM parameter ARNs.
+- Added CloudFront /api/* routing to the ECS ALB, preserving the existing HTTPS CloudFront endpoint.
+- Extended RDS ingress to accept both legacy App Runner and ECS task security groups while retaining private database access.
+- Added backend_platform and enable_app_runner configuration. ECS is the default for new environments; the legacy App Runner service remains an explicit option.
+- Updated deploy-dev workflow to register SHA-specific ECS task revisions, run one Alembic migration task before ECS rollout, wait for service stability, and retain the App Runner deployment path.
+- Packaged Alembic config/revisions in the API image and removed FastAPI Base.metadata.create_all startup DDL.
+
+Validation:
+- Terraform validate: pass.
+- Focused API endpoint tests: 20 passed.
+- API Docker image build: pass.
+- ECS migration Terraform plan: 18 to add, 2 to change, 0 to destroy. The prior interrupted RDS creation left a stale taint; it was cleared after AWS reported the instance available, preventing a destructive replacement plan.

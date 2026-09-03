@@ -44,14 +44,12 @@ on:
       app_description:
         description: Frontend app description
         required: true
-        default: ReviewLens
- SaaS template
+        default: "ReviewLens SaaS template"
         type: string
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: reviewlens
--tf-lock
+        default: reviewlens-tf-lock
         type: string
       force_backend_rebuild:
         description: Force backend image rebuild even if current commit SHA tag already exists in ECR
@@ -61,6 +59,14 @@ on:
         options:
           - "false"
           - "true"
+      backend_platform:
+        description: Backend platform to deploy and use for the frontend
+        required: true
+        default: ecs
+        type: choice
+        options:
+          - ecs
+          - app_runner
 
 permissions:
   contents: read
@@ -82,6 +88,7 @@ env:
   TF_LOCK_TABLE_NAME: ${{ inputs.tf_lock_table_name }}
   ENVIRONMENT_NAME: ${{ inputs.environment_name }}
   FORCE_BACKEND_REBUILD: ${{ inputs.force_backend_rebuild }}
+  BACKEND_PLATFORM: ${{ inputs.backend_platform }}
 
 jobs:
   deploy:
@@ -112,7 +119,7 @@ jobs:
         run: |
           missing=0
 
-          for name in AWS_REGION TF_STATE_BUCKET TF_STATE_KEY TF_LOCK_TABLE_NAME APP_SLUG API_NAME APP_DISPLAY_NAME APP_DESCRIPTION ENVIRONMENT_NAME FORCE_BACKEND_REBUILD; do
+          for name in AWS_REGION TF_STATE_BUCKET TF_STATE_KEY TF_LOCK_TABLE_NAME APP_SLUG API_NAME APP_DISPLAY_NAME APP_DESCRIPTION ENVIRONMENT_NAME FORCE_BACKEND_REBUILD BACKEND_PLATFORM; do
             if [[ -z "${!name}" ]]; then
               echo "Missing required workflow input: $name" >&2
               missing=1
@@ -121,6 +128,11 @@ jobs:
 
           if [[ -z "${{ secrets.AWS_ROLE_ARN }}" ]]; then
             echo "Missing required repository secret: AWS_ROLE_ARN" >&2
+            missing=1
+          fi
+
+          if [[ "$BACKEND_PLATFORM" != "ecs" && "$BACKEND_PLATFORM" != "app_runner" ]]; then
+            echo "BACKEND_PLATFORM must be ecs or app_runner" >&2
             missing=1
           fi
 
@@ -134,15 +146,23 @@ jobs:
           terraform init -input=false \
             -backend-config="bucket=${TF_STATE_BUCKET}" \
             -backend-config="key=${TF_STATE_KEY:-dev/terraform.tfstate}" \
-            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}"
+            -backend-config="dynamodb_table=${TF_LOCK_TABLE_NAME}" \
+            -backend-config="region=${AWS_REGION}"
 
       - name: Resolve deployment targets
         id: infra
         working-directory: infra/providers/aws/terraform/environments/dev
         run: |
           echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> "$GITHUB_OUTPUT"
-          echo "app_runner_service_arn=$(terraform output -raw app_runner_service_arn)" >> "$GITHUB_OUTPUT"
-          echo "app_runner_service_url=$(terraform output -raw app_runner_service_url)" >> "$GITHUB_OUTPUT"
+          echo "app_runner_service_arn=$(terraform output -raw app_runner_service_arn 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+          echo "app_runner_service_url=$(terraform output -raw app_runner_service_url 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+          echo "ecs_service_url=$(terraform output -raw ecs_service_url)" >> "$GITHUB_OUTPUT"
+          echo "ecs_cluster_name=$(terraform output -raw ecs_cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "ecs_service_name=$(terraform output -raw ecs_service_name)" >> "$GITHUB_OUTPUT"
+          echo "ecs_api_task_definition_arn=$(terraform output -raw ecs_api_task_definition_arn)" >> "$GITHUB_OUTPUT"
+          echo "ecs_migration_task_definition_arn=$(terraform output -raw ecs_migration_task_definition_arn)" >> "$GITHUB_OUTPUT"
+          echo "ecs_task_security_group_id=$(terraform output -raw ecs_task_security_group_id)" >> "$GITHUB_OUTPUT"
+          echo "ecs_private_subnets=$(terraform output -json private_subnets | jq -r 'join(",")')" >> "$GITHUB_OUTPUT"
           echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_domain_name=$(terraform output -raw cloudfront_domain_name)" >> "$GITHUB_OUTPUT"
@@ -214,6 +234,7 @@ jobs:
           echo "Using CORS origins: ${next_origins}"
 
       - name: Ensure App Runner service is RUNNING
+        if: ${{ env.BACKEND_PLATFORM == 'app_runner' }}
         run: |
           service_arn="${{ steps.infra.outputs.app_runner_service_arn }}"
 
@@ -272,6 +293,7 @@ jobs:
           exit 1
 
       - name: Start App Runner deployment
+        if: ${{ env.BACKEND_PLATFORM == 'app_runner' }}
         id: apprunner
         run: |
           operation_id=$(aws apprunner start-deployment \
@@ -281,6 +303,7 @@ jobs:
           echo "operation_id=${operation_id}" >> "$GITHUB_OUTPUT"
 
       - name: Wait for App Runner deployment
+        if: ${{ env.BACKEND_PLATFORM == 'app_runner' }}
         run: |
           for attempt in $(seq 1 60); do
             status=$(aws apprunner list-operations \
@@ -303,6 +326,78 @@ jobs:
           echo "Timed out waiting for App Runner deployment" >&2
           exit 1
 
+      - name: Register ECS task definitions for image
+        if: ${{ env.BACKEND_PLATFORM == 'ecs' }}
+        id: ecs-task-definitions
+        run: |
+          register_task_definition() {
+            local source_arn="$1"
+            local output_name="$2"
+            local definition_file
+            definition_file=$(mktemp)
+
+            aws ecs describe-task-definition --task-definition "$source_arn" \
+              --query 'taskDefinition' --output json \
+              | jq --arg image "${{ steps.image.outputs.image_uri }}" '
+                  del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                      .compatibilities, .registeredAt, .registeredBy,
+                      .deregisteredAt, .enableFaultInjection)
+                  | .containerDefinitions[0].image = $image
+                ' > "$definition_file"
+
+            arn=$(aws ecs register-task-definition \
+              --cli-input-json "file://${definition_file}" \
+              --query 'taskDefinition.taskDefinitionArn' --output text)
+            echo "${output_name}=${arn}" >> "$GITHUB_OUTPUT"
+          }
+
+          register_task_definition "${{ steps.infra.outputs.ecs_api_task_definition_arn }}" api_task_definition_arn
+          register_task_definition "${{ steps.infra.outputs.ecs_migration_task_definition_arn }}" migration_task_definition_arn
+
+      - name: Run ECS database migration
+        if: ${{ env.BACKEND_PLATFORM == 'ecs' }}
+        run: |
+          network_configuration="awsvpcConfiguration={subnets=[${{ steps.infra.outputs.ecs_private_subnets }}],securityGroups=[${{ steps.infra.outputs.ecs_task_security_group_id }}],assignPublicIp=DISABLED}"
+          task_arn=$(aws ecs run-task \
+            --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+            --launch-type FARGATE \
+            --task-definition "${{ steps.ecs-task-definitions.outputs.migration_task_definition_arn }}" \
+            --network-configuration "$network_configuration" \
+            --query 'tasks[0].taskArn' --output text)
+
+          if [[ -z "$task_arn" || "$task_arn" == "None" ]]; then
+            echo "ECS did not start a migration task" >&2
+            exit 1
+          fi
+
+          for attempt in $(seq 1 90); do
+            status=$(aws ecs describe-tasks --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+              --tasks "$task_arn" --query 'tasks[0].lastStatus' --output text)
+            if [[ "$status" == "STOPPED" ]]; then
+              exit_code=$(aws ecs describe-tasks --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+                --tasks "$task_arn" --query 'tasks[0].containers[0].exitCode' --output text)
+              [[ "$exit_code" == "0" ]] && exit 0
+              echo "ECS migration task failed with exit code: $exit_code" >&2
+              exit 1
+            fi
+            sleep 10
+          done
+
+          echo "Timed out waiting for ECS migration task" >&2
+          exit 1
+
+      - name: Deploy ECS API service
+        if: ${{ env.BACKEND_PLATFORM == 'ecs' }}
+        run: |
+          aws ecs update-service \
+            --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+            --service "${{ steps.infra.outputs.ecs_service_name }}" \
+            --task-definition "${{ steps.ecs-task-definitions.outputs.api_task_definition_arn }}" \
+            --desired-count 1 >/dev/null
+          aws ecs wait services-stable \
+            --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+            --services "${{ steps.infra.outputs.ecs_service_name }}"
+
       - name: Install web dependencies
         working-directory: apps/web
         run: npm ci
@@ -324,7 +419,7 @@ jobs:
           VITE_APP_DESCRIPTION: ${{ env.APP_DESCRIPTION }}
           VITE_API_NAME: ${{ env.API_NAME }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ steps.frontend.outputs.clerk_publishable_key }}
-          VITE_API_BASE_URL: https://${{ steps.infra.outputs.app_runner_service_url }}
+          VITE_API_BASE_URL: ${{ env.BACKEND_PLATFORM == 'ecs' && steps.infra.outputs.ecs_service_url || format('https://{0}', steps.infra.outputs.app_runner_service_url) }}
         run: npm run build
 
       - name: Publish frontend assets
@@ -359,7 +454,7 @@ jobs:
       - name: Smoke test deployment
         run: |
           frontend_url="https://${{ steps.infra.outputs.cloudfront_domain_name }}"
-          api_base_url="https://${{ steps.infra.outputs.app_runner_service_url }}"
+          api_base_url="${{ env.BACKEND_PLATFORM == 'ecs' && steps.infra.outputs.ecs_service_url || format('https://{0}', steps.infra.outputs.app_runner_service_url) }}"
 
           # Frontend reachable: must return HTTP 200.
           [[ "$(curl -fsS -o /dev/null -w '%{http_code}' "${frontend_url}/")" == "200" ]]
@@ -380,7 +475,8 @@ jobs:
         run: |
           echo "## deploy-dev" >> "$GITHUB_STEP_SUMMARY"
           echo "- Frontend: https://${{ steps.infra.outputs.cloudfront_domain_name }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Backend: https://${{ steps.infra.outputs.app_runner_service_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Backend platform: ${{ env.BACKEND_PLATFORM }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Backend: ${{ env.BACKEND_PLATFORM == 'ecs' && steps.infra.outputs.ecs_service_url || format('https://{0}', steps.infra.outputs.app_runner_service_url) }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Backend image tag: ${{ steps.image.outputs.image_tag }}" >> "$GITHUB_STEP_SUMMARY"
           if [[ "${{ env.FORCE_BACKEND_REBUILD }}" == "true" ]]; then
             echo "- Backend image action: forced rebuild" >> "$GITHUB_STEP_SUMMARY"

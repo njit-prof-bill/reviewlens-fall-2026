@@ -1,6 +1,5 @@
 This document contains references to ReviewLens
 
-
 # Cloud Development Operations
 
 This runbook covers first-time setup and daily operations for the cloud `dev` environment on AWS.
@@ -73,8 +72,22 @@ Typical sequence:
 ## Known Constraints
 
 - GitHub-hosted runners cannot directly reach private RDS for migration execution.
-- Database migrations are currently not performed from `deploy-dev.yml`.
 - Authenticated `/api/me` smoke check is deferred until a stable CI strategy for Clerk session token injection is added.
+
+## ECS Deployment Migration
+
+New AWS dev environments use ECS Fargate with private tasks and an Application Load Balancer. CloudFront forwards `/api/*` to that load balancer, so the API has a stable HTTPS URL through the existing CloudFront domain without requiring a custom domain certificate. App Runner remains an optional legacy path during the transition.
+
+`deploy-dev.yml` accepts `backend_platform`:
+
+- `ecs` builds or reuses the SHA-tagged image, runs exactly one ECS migration task, verifies its exit code, then updates the ECS API service.
+- `app_runner` retains the previous App Runner deployment path for an existing legacy service.
+
+The migration task runs `alembic upgrade head` inside the private ECS network. The API process no longer creates tables at startup. For a database that predates Alembic tracking, inspect the schema and `alembic_version` first; use `alembic stamp <reviewed-revision>` only as an explicit operator action after confirming the schema matches that revision.
+
+## Cost-Control Lifecycle
+
+Use `pause` only for brief interruptions where stable endpoints are worth retaining. The intended early-development default is `hibernate`: stop RDS, scale ECS to zero, and remove the NAT gateway and load balancer while retaining RDS storage, users/data, ECR images, state, and secrets. A stopped RDS instance can restart automatically after AWS's maximum stop interval, so hibernation is low-cost rather than permanent zero-cost. `destroy` remains the explicit full-environment disposal path.
 
 ## Environment Isolation Reset Runbook
 
@@ -133,7 +146,7 @@ Post-run checks:
 In Clerk dashboard:
 
 1. Delete old shared ReviewLens
- app.
+   app.
 2. Create `reviewlens
 -local`.
 3. Create `reviewlens

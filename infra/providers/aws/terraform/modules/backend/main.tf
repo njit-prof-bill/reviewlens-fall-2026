@@ -25,6 +25,11 @@ variable "app_runner_memory" {
   default = 512
 }
 
+variable "create_app_runner_service" {
+  type    = bool
+  default = true
+}
+
 variable "vpc_connector_subnets" {
   type    = list(string)
   default = []
@@ -61,11 +66,11 @@ variable "clerk_audience_param_arn" {
 }
 
 output "app_runner_service_url" {
-  value = aws_apprunner_service.main.service_url
+  value = var.create_app_runner_service ? aws_apprunner_service.main[0].service_url : null
 }
 
 output "app_runner_service_arn" {
-  value = aws_apprunner_service.main.arn
+  value = var.create_app_runner_service ? aws_apprunner_service.main[0].arn : null
 }
 
 output "app_runner_role_arn" {
@@ -188,6 +193,7 @@ resource "aws_apprunner_vpc_connector" "main" {
 
 # App Runner Service
 resource "aws_apprunner_service" "main" {
+  count        = var.create_app_runner_service ? 1 : 0
   service_name = "${var.name_prefix}-api"
 
   source_configuration {
@@ -249,6 +255,7 @@ resource "aws_apprunner_service" "main" {
 
 # CloudWatch Alarm for App Runner
 resource "aws_cloudwatch_metric_alarm" "cpu" {
+  count               = var.create_app_runner_service ? 1 : 0
   alarm_name          = "${var.name_prefix}-app-runner-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
@@ -260,6 +267,6 @@ resource "aws_cloudwatch_metric_alarm" "cpu" {
   alarm_description   = "Alert when App Runner CPU exceeds 80%"
 
   dimensions = {
-    ServiceName = aws_apprunner_service.main.service_name
+    ServiceName = aws_apprunner_service.main[0].service_name
   }
 }

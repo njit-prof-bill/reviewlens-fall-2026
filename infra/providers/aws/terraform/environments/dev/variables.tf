@@ -111,3 +111,26 @@ variable "app_runner_memory" {
   type        = number
   default     = 512
 }
+
+variable "backend_platform" {
+  description = "Backend endpoint used for frontend builds: app_runner or ecs"
+  type        = string
+  default     = "app_runner"
+
+  validation {
+    condition     = contains(["app_runner", "ecs"], var.backend_platform)
+    error_message = "backend_platform must be app_runner or ecs."
+  }
+}
+
+variable "enable_app_runner" {
+  description = "Whether to manage the legacy App Runner backend during the ECS transition"
+  type        = bool
+  default     = true
+}
+
+variable "ecs_desired_count" {
+  description = "Desired ECS API task count; keep zero until a deploy workflow publishes an application image"
+  type        = number
+  default     = 0
+}

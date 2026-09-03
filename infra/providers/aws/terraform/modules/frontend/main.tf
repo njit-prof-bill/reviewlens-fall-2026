@@ -11,6 +11,11 @@ variable "cors_allowed_origins" {
   default = []
 }
 
+variable "api_origin_domain" {
+  type    = string
+  default = ""
+}
+
 output "cloudfront_domain_name" {
   value = aws_cloudfront_distribution.main.domain_name
 }
@@ -88,6 +93,22 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
+  dynamic "origin" {
+    for_each = var.api_origin_domain != "" ? [var.api_origin_domain] : []
+
+    content {
+      domain_name = origin.value
+      origin_id   = "EcsApiOrigin"
+
+      custom_origin_config {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "http-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+  }
+
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -111,6 +132,32 @@ resource "aws_cloudfront_distribution" "main" {
     default_ttl            = 3600
     max_ttl                = 86400
     compress               = true
+  }
+
+  dynamic "ordered_cache_behavior" {
+    for_each = var.api_origin_domain != "" ? [var.api_origin_domain] : []
+
+    content {
+      path_pattern     = "/api/*"
+      allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+      cached_methods   = ["GET", "HEAD", "OPTIONS"]
+      target_origin_id = "EcsApiOrigin"
+
+      forwarded_values {
+        query_string = true
+        headers      = ["Authorization", "Origin"]
+
+        cookies {
+          forward = "all"
+        }
+      }
+
+      viewer_protocol_policy = "redirect-to-https"
+      min_ttl                = 0
+      default_ttl            = 0
+      max_ttl                = 0
+      compress               = true
+    }
   }
 
   # SPA routing: 404/403 -> /index.html with 200 status

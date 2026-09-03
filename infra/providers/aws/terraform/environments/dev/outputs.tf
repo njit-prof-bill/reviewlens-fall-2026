@@ -30,7 +30,42 @@ output "app_runner_role_arn" {
 
 output "ecr_repository_url" {
   description = "ECR repository URL for Docker images"
-  value       = module.backend.ecr_repository_url
+  value       = module.backend_ecr.repository_url
+}
+
+output "ecs_service_url" {
+  description = "HTTPS API base URL served through CloudFront"
+  value       = "https://${module.frontend.cloudfront_domain_name}"
+}
+
+output "ecs_cluster_name" {
+  description = "ECS cluster name"
+  value       = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  description = "ECS API service name"
+  value       = module.ecs.service_name
+}
+
+output "ecs_api_task_definition_arn" {
+  description = "ECS API task definition ARN"
+  value       = module.ecs.api_task_definition_arn
+}
+
+output "ecs_migration_task_definition_arn" {
+  description = "ECS migration task definition ARN"
+  value       = module.ecs.migration_task_definition_arn
+}
+
+output "ecs_task_security_group_id" {
+  description = "Security group for ECS API and migration tasks"
+  value       = module.ecs.task_security_group_id
+}
+
+output "ecs_load_balancer_dns_name" {
+  description = "Internal ECS API load balancer hostname"
+  value       = module.ecs.load_balancer_dns_name
 }
 
 output "rds_endpoint" {
@@ -100,7 +135,8 @@ output "deployment_summary" {
     ✓ Deployment Complete
 
     Frontend URL: https://${module.frontend.cloudfront_domain_name}
-    Backend URL:  ${module.backend.app_runner_service_url}
+    App Runner URL: ${var.enable_app_runner ? module.backend.app_runner_service_url : "not managed"}
+    ECS API URL:    https://${module.frontend.cloudfront_domain_name}
     Database:     ${module.database.rds_endpoint}
 
     Next Steps:
@@ -112,7 +148,7 @@ output "deployment_summary" {
     3. Monitor GitHub Actions for build/deploy progress
 
     Configuration Files:
-    - App Runner environment: SSM Parameter Store
+    - Backend runtime configuration: SSM Parameter Store
     - Secrets: AWS Secrets Manager
   EOT
 }

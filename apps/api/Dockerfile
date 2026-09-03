@@ -19,6 +19,8 @@ ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
 COPY apps/api/app app/
+COPY apps/api/alembic alembic/
+COPY apps/api/alembic.ini alembic.ini
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
