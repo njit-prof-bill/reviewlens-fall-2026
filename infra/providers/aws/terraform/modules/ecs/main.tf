@@ -31,9 +31,19 @@ locals {
     { name = "DATABASE_URL", valueFrom = var.database_url_arn },
     { name = "CLERK_JWKS_URL", valueFrom = var.clerk_jwks_url_param_arn },
     { name = "CORS_ORIGINS", valueFrom = var.cors_origins_param_arn },
-    { name = "CLERK_ISSUER", valueFrom = var.clerk_issuer_param_arn },
-    { name = "CLERK_AUDIENCE", valueFrom = var.clerk_audience_param_arn },
   ]
+  optional_clerk_secrets = concat(
+    var.clerk_issuer_param_arn != "" ? [
+      { name = "CLERK_ISSUER", valueFrom = var.clerk_issuer_param_arn },
+    ] : [],
+    var.clerk_audience_param_arn != "" ? [
+      { name = "CLERK_AUDIENCE", valueFrom = var.clerk_audience_param_arn },
+    ] : [],
+  )
+  container_secrets = concat(
+    local.api_secrets,
+    local.optional_clerk_secrets,
+  )
 }
 
 output "cluster_arn" { value = aws_ecs_cluster.main.arn }
@@ -182,7 +192,7 @@ resource "aws_ecs_task_definition" "api" {
     image        = local.image_uri
     essential    = true
     portMappings = [{ containerPort = 8000, protocol = "tcp" }]
-    secrets      = local.api_secrets
+    secrets      = local.container_secrets
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -207,7 +217,7 @@ resource "aws_ecs_task_definition" "migration" {
     image     = local.image_uri
     essential = true
     command   = ["alembic", "upgrade", "head"]
-    secrets   = local.api_secrets
+    secrets   = local.container_secrets
     logConfiguration = {
       logDriver = "awslogs"
       options = {
