@@ -38,6 +38,10 @@ output "app_runner_security_group_id" {
   value = aws_security_group.app_runner.id
 }
 
+output "ecs_task_security_group_id" {
+  value = aws_security_group.ecs_task.id
+}
+
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -160,5 +164,21 @@ resource "aws_security_group" "app_runner" {
 
   tags = {
     Name = "${var.name_prefix}-app-runner-sg"
+  }
+}
+
+resource "aws_security_group" "ecs_task" {
+  name_prefix = "${var.name_prefix}-ecs-task-"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-ecs-task-sg"
   }
 }

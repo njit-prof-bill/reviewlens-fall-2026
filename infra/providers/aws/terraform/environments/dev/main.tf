@@ -30,16 +30,19 @@ module "networking" {
 module "database" {
   source = "../../modules/database"
 
-  name_prefix               = local.name_prefix
-  environment               = local.environment
-  vpc_id                    = module.networking.vpc_id
-  private_subnet_ids        = module.networking.private_subnet_ids
-  allowed_security_group_id = module.networking.app_runner_security_group_id
-  instance_class            = var.rds_instance_class
-  allocated_storage         = var.rds_storage_gb
-  publicly_accessible       = var.rds_public_accessibility
-  database_name             = var.database_name
-  database_username         = "postgres"
+  name_prefix        = local.name_prefix
+  environment        = local.environment
+  vpc_id             = module.networking.vpc_id
+  private_subnet_ids = module.networking.private_subnet_ids
+  allowed_security_group_ids = [
+    module.networking.app_runner_security_group_id,
+    module.networking.ecs_task_security_group_id,
+  ]
+  instance_class      = var.rds_instance_class
+  allocated_storage   = var.rds_storage_gb
+  publicly_accessible = var.rds_public_accessibility
+  database_name       = var.database_name
+  database_username   = "postgres"
   # Password will be generated and stored in Secrets Manager by bootstrap script
 }
 
@@ -51,7 +54,7 @@ module "backend_ecr" {
   environment = local.environment
 }
 
-# App Runner Backend Service
+# Legacy App Runner Backend Service
 module "backend" {
   source = "../../modules/backend"
 
@@ -61,6 +64,7 @@ module "backend" {
   ecr_image_tag                = var.ecr_image_tag
   app_runner_cpu               = var.app_runner_cpu
   app_runner_memory            = var.app_runner_memory
+  create_app_runner_service    = var.enable_app_runner
   vpc_connector_subnets        = module.networking.private_subnet_ids
   app_runner_security_group_id = module.networking.app_runner_security_group_id
 
@@ -75,6 +79,28 @@ module "backend" {
   clerk_audience_param_arn = var.clerk_audience != "" ? module.secrets.ssm_clerk_audience_arn : ""
 }
 
+# ECS backend runs alongside the legacy App Runner service during migration.
+module "ecs" {
+  source = "../../modules/ecs"
+
+  name_prefix            = local.name_prefix
+  environment            = local.environment
+  ecr_repository_url     = module.backend_ecr.repository_url
+  ecr_image_tag          = var.ecr_image_tag
+  vpc_id                 = module.networking.vpc_id
+  public_subnet_ids      = module.networking.public_subnet_ids
+  private_subnet_ids     = module.networking.private_subnet_ids
+  task_security_group_id = module.networking.ecs_task_security_group_id
+  desired_count          = var.ecs_desired_count
+
+  clerk_secret_key_arn     = var.clerk_secret_key_arn
+  database_url_arn         = var.rds_database_url_arn
+  clerk_jwks_url_param_arn = module.secrets.ssm_clerk_jwks_url_arn
+  cors_origins_param_arn   = module.secrets.ssm_cors_origins_arn
+  clerk_issuer_param_arn   = module.secrets.ssm_clerk_issuer_arn
+  clerk_audience_param_arn = module.secrets.ssm_clerk_audience_arn
+}
+
 # Frontend (S3 + CloudFront)
 module "frontend" {
   source = "../../modules/frontend"
@@ -82,6 +108,7 @@ module "frontend" {
   name_prefix          = local.name_prefix
   environment          = local.environment
   cors_allowed_origins = var.cors_origins != "" ? split(",", var.cors_origins) : []
+  api_origin_domain    = module.ecs.load_balancer_dns_name
 }
 
 # Secrets & Configuration
@@ -95,6 +122,6 @@ module "secrets" {
   clerk_audience             = var.clerk_audience
   clerk_publishable_key      = var.clerk_publishable_key
   cors_origins               = var.cors_origins
-  vite_api_base_url          = module.backend.app_runner_service_url
+  vite_api_base_url          = var.backend_platform == "ecs" ? "https://${module.frontend.cloudfront_domain_name}" : module.backend.app_runner_service_url
   vite_clerk_publishable_key = var.clerk_publishable_key
 }

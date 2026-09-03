@@ -26,3 +26,8 @@ ecr_image_tag = "latest"
 # App Runner
 app_runner_cpu    = 256
 app_runner_memory = 512
+
+# Container platform
+backend_platform  = "ecs"
+enable_app_runner = false
+ecs_desired_count = 0

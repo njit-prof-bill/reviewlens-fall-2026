@@ -14,8 +14,8 @@ variable "private_subnet_ids" {
   type = list(string)
 }
 
-variable "allowed_security_group_id" {
-  type = string
+variable "allowed_security_group_ids" {
+  type = list(string)
 }
 
 variable "instance_class" {
@@ -67,7 +67,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [var.allowed_security_group_id]
+    security_groups = var.allowed_security_group_ids
   }
 
   egress {

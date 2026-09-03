@@ -1,12 +1,11 @@
 This document contains references to ReviewLens
 
-
 # 0004: Infrastructure as Code Deployment Adapter Model
 
 ## Decision
 
 ReviewLens
- will move from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit Infrastructure as Code (IaC) deployment orchestrated by GitHub Actions, starting with AWS as the first provider adapter.
+will move from platform-pull deployment (Cloudflare/Railway auto-deploy on push) to explicit Infrastructure as Code (IaC) deployment orchestrated by GitHub Actions, starting with AWS as the first provider adapter.
 
 ### Update: June 6, 2026 — Frontend Shell UX and PWA Baseline
 
@@ -17,7 +16,7 @@ The template baseline now also standardizes frontend shell behavior for authenti
 - Sign-out action continues using Clerk signOut with redirect to /sign-in
 
 ReviewLens
- web is now configured as a Progressive Web App (PWA) using Vite PWA integration.
+web is now configured as a Progressive Web App (PWA) using Vite PWA integration.
 
 PWA policy for this template is online-first and auth-safe:
 
@@ -34,6 +33,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
 **Commands used:**
 
 1. Create OIDC provider:
+
    ```bash
    aws iam create-open-id-connect-provider \
      --url "https://token.actions.githubusercontent.com" \
@@ -42,6 +42,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
      --profile reviewlens
 
    ```
+
 2. Create trust policy file (substitute your AWS account ID):
    ```json
    {
@@ -56,7 +57,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
          "Condition": {
            "StringLike": {
              "token.actions.githubusercontent.com:sub": "repo:fourier-gauss-labs/reviewlens
-:*"
+   :*"
            },
            "StringEquals": {
              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
@@ -69,20 +70,22 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
 3. Create IAM role:
    ```bash
    aws iam create-role --role-name github-actions-reviewlens
--deploy \
+   -deploy \
      --assume-role-policy-document file:///tmp/reviewlens
--github-trust.json \
+   -github-trust.json \
      --profile reviewlens
- --output json
+   --output json
    ```
 4. Attach permissions:
+
    ```bash
    aws iam attach-role-policy --role-name github-actions-reviewlens
--deploy \
+   -deploy \
      --policy-arn arn:aws:iam::aws:policy/AdministratorAccess \
      --profile reviewlens
 
    ```
+
 5. Copy the role ARN (e.g., `arn:aws:iam::098295335350:role/github-actions-reviewlens
 -deploy`) and add as `AWS_ROLE_ARN` in GitHub repository secrets.
 
@@ -240,7 +243,7 @@ The architecture is designed for future GCP and Azure adapters:
 ### Clerk Environment Isolation
 
 ReviewLens
- local and cloud dev environments use separate databases and should therefore use separate Clerk applications to avoid cross-environment identity coupling.
+local and cloud dev environments use separate databases and should therefore use separate Clerk applications to avoid cross-environment identity coupling.
 
 Policy:
 
@@ -279,7 +282,17 @@ Recommendation: use `pause` mode between validation sessions.
 - Staging and production environments (documented as future tag strategy)
 - Custom domain / Route53
 - GCP and Azure adapters (structure and placeholders only)
-- Kubernetes or ECS (deliberately avoided)
+- Kubernetes (deliberately avoided)
+
+### Update: September 2, 2026 - ECS Migration
+
+AWS no longer accepts new App Runner customers. New environments therefore use ECS Fargate while existing App Runner services remain available until an explicit retirement change is approved.
+
+- ECS API and migration tasks run in private subnets and use the existing ECR repository, RDS instance, Secrets Manager values, and SSM parameters.
+- An Application Load Balancer forwards to private ECS tasks; the existing CloudFront distribution provides the public HTTPS API path through `/api/*`.
+- Deployments run one ECS Alembic task before updating the API service to the SHA-tagged image. FastAPI startup no longer creates database tables.
+- `backend_platform` selects the frontend API endpoint. New environments default to `ecs`; `app_runner` remains an explicit reversible legacy option.
+- The intended low-cost lifecycle is hibernate: retain database data but remove always-on ECS ingress and NAT resources. App Runner retirement is not automatic.
 
 ## Reference
 
