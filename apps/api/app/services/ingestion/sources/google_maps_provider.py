@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 from app.core.config import settings
 from app.db.models import AnalysisTarget
 from app.domain import IngestionErrorCode
-from app.services.ingestion.base import IngestionError, RawReview
+from app.services.ingestion.base import IngestionError, IngestionResult, RawReview
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ class GoogleMapsReviewProvider:
         self._fetch_json = fetch_json
         self._expand_url = expand_url
 
-    def fetch(self, target: AnalysisTarget) -> list[RawReview]:
+    def fetch(self, target: AnalysisTarget) -> IngestionResult:
         if not self._api_key:
             raise IngestionError(
                 IngestionErrorCode.PROVIDER_NOT_CONFIGURED,
@@ -117,10 +117,15 @@ class GoogleMapsReviewProvider:
 
         data_id = self._resolve_data_id(target.source_url)
         collected: list[RawReview] = []
+        entity_name: str | None = None
         next_page_token: str | None = None
 
         while len(collected) < self._max_reviews:
             payload = self._request_page(data_id, next_page_token)
+            if entity_name is None:
+                title = (payload.get("place_info") or {}).get("title")
+                if isinstance(title, str) and title.strip():
+                    entity_name = title.strip()
             entries = payload.get("reviews") or []
             if not entries:
                 break
@@ -136,7 +141,9 @@ class GoogleMapsReviewProvider:
         if not collected:
             raise IngestionError(IngestionErrorCode.NO_REVIEWS_AVAILABLE)
 
-        return collected[: self._max_reviews]
+        return IngestionResult(
+            reviews=collected[: self._max_reviews], entity_name=entity_name
+        )
 
     def _resolve_data_id(self, source_url: str) -> str:
         url = source_url

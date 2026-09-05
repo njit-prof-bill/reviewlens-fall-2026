@@ -80,8 +80,8 @@ def execute_ingestion_run(
         session.commit()
 
         try:
-            raw_reviews = source.fetch(target)
-            accepted, rejected = normalize_all(raw_reviews)
+            result = source.fetch(target)
+            accepted, rejected = normalize_all(result.reviews)
         except IngestionError as exc:
             logger.warning(
                 "Ingestion run %s failed (%s): %s",
@@ -110,6 +110,10 @@ def execute_ingestion_run(
                 error_code=IngestionErrorCode.NO_USABLE_REVIEWS,
             )
             return
+
+        if result.entity_name and target.name == "Untitled Analysis":
+            target.name = result.entity_name[:200]
+            session.add(target)
 
         session.add_all(
             Review(

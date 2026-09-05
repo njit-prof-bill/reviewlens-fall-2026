@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from app.domain import IngestionErrorCode
 from app.routers import ingestion as ingestion_router
-from app.services.ingestion.base import IngestionError, RawReview
+from app.services.ingestion.base import IngestionError, IngestionResult, RawReview
 
 FIXTURES = Path(__file__).parent / "fixtures"
 VALID_URL = (
@@ -19,14 +19,15 @@ VALID_URL = (
 class StubProvider:
     """Stands in for the third-party provider so tests never hit the network."""
 
-    def __init__(self, reviews=None, error=None):
+    def __init__(self, reviews=None, error=None, entity_name=None):
         self._reviews = reviews or []
         self._error = error
+        self._entity_name = entity_name
 
     def fetch(self, target):
         if self._error:
             raise self._error
-        return self._reviews
+        return IngestionResult(self._reviews, self._entity_name)
 
 
 def _use_provider(monkeypatch, provider):
@@ -75,6 +76,39 @@ class TestUrlIngestion:
         assert run["reviews_ingested"] == 4
         assert run["reviews_rejected"] == 0
         assert run["error_code"] is None
+
+    def test_provider_title_replaces_the_short_link_placeholder(
+        self, client_factory, user_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        target = _create_target(
+            client,
+            name="Untitled Analysis",
+            source_url="https://maps.app.goo.gl/AbCdEfGh123",
+        )
+        _use_provider(
+            monkeypatch,
+            StubProvider(_recorded_reviews(), entity_name="Blue Bottle Coffee"),
+        )
+
+        client.post(f"/api/v1/analysis-targets/{target['id']}/ingestions")
+
+        updated = client.get(f"/api/v1/analysis-targets/{target['id']}").json()
+        assert updated["name"] == "Blue Bottle Coffee"
+
+    def test_provider_title_does_not_replace_an_existing_name(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        _use_provider(
+            monkeypatch,
+            StubProvider(_recorded_reviews(), entity_name="Provider Name"),
+        )
+        client = client_factory(user_a)
+
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        updated = client.get(f"/api/v1/analysis-targets/{target_a['id']}").json()
+        assert updated["name"] == "Blue Bottle Coffee"
 
     def test_persisted_reviews_match_the_normalized_input(
         self, client_factory, user_a, target_a, monkeypatch
