@@ -20,6 +20,12 @@ class RawReview:
     source_metadata: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(slots=True)
+class IngestionResult:
+    reviews: list[RawReview]
+    entity_name: str | None = None
+
+
 class IngestionError(Exception):
     """Aborts a whole run. Carries a stable code and a user-safe message."""
 
@@ -31,4 +37,4 @@ class IngestionError(Exception):
 
 
 class ReviewSource(Protocol):
-    def fetch(self, target: AnalysisTarget) -> list[RawReview]: ...
+    def fetch(self, target: AnalysisTarget) -> IngestionResult: ...

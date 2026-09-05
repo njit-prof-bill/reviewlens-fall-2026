@@ -46,6 +46,8 @@ export function AnalysisWorkspace() {
   // Once a run settles, pull the derived views back into sync.
   useEffect(() => {
     if (!targetId || !isTerminal(runStatus)) return
+    queryClient.invalidateQueries({ queryKey: analysisKeys.all })
+    queryClient.invalidateQueries({ queryKey: analysisKeys.detail(targetId) })
     queryClient.invalidateQueries({ queryKey: analysisKeys.summary(targetId) })
     queryClient.invalidateQueries({ queryKey: ['analysis-targets', targetId, 'reviews'] })
   }, [targetId, runStatus, queryClient])

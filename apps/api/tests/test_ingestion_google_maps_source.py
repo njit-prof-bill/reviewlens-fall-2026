@@ -61,10 +61,11 @@ class TestSuccessfulCollection:
             ),
         )
 
-        reviews = provider.fetch(target)
+        result = provider.fetch(target)
 
-        assert len(reviews) == 6
-        first = reviews[0]
+        assert result.entity_name == "Blue Bottle Coffee"
+        assert len(result.reviews) == 6
+        first = result.reviews[0]
         assert first.review_text.startswith("The pour over here")
         assert first.rating == 5
         assert first.reviewer_name == "Dana Whitfield"
@@ -79,7 +80,7 @@ class TestSuccessfulCollection:
             ),
         )
 
-        assert len(provider.fetch(target)) == 3
+        assert len(provider.fetch(target).reviews) == 3
 
     def test_expands_a_short_link_before_resolving_the_place(self):
         short_target = AnalysisTarget(
@@ -95,7 +96,7 @@ class TestSuccessfulCollection:
             expand_url=lambda url, timeout: PLACE_URL,
         )
 
-        assert len(provider.fetch(short_target)) == 2
+        assert len(provider.fetch(short_target).reviews) == 2
 
 
 class TestFailureMapping:

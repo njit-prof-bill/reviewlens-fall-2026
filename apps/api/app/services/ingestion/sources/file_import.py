@@ -10,7 +10,7 @@ from typing import Any
 
 from app.db.models import AnalysisTarget
 from app.domain import IngestionErrorCode
-from app.services.ingestion.base import IngestionError, RawReview
+from app.services.ingestion.base import IngestionError, IngestionResult, RawReview
 
 _TEXT_KEYS = ("review_text", "text", "snippet", "review", "comment", "body")
 _RATING_KEYS = ("rating", "stars", "score", "star_rating")
@@ -118,5 +118,5 @@ class FileImportSource:
         self._filename = filename
         self._payload = payload
 
-    def fetch(self, target: AnalysisTarget) -> list[RawReview]:
-        return parse_upload(self._filename, self._payload)
+    def fetch(self, target: AnalysisTarget) -> IngestionResult:
+        return IngestionResult(reviews=parse_upload(self._filename, self._payload))
