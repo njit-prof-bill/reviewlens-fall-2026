@@ -176,7 +176,7 @@ This section is **advisory, not binding**. It exists because two parts of Sprint
 
 Nothing here names a required vendor. Where this guidance and a canonical business rule appear to disagree, the rule prevails.
 
-## Buy, Do Not Build
+## Do Not Reinvent the Wheel
 
 You have one sprint. Spend it on the parts of ReviewLens that are actually yours: ownership boundaries, the ingestion pipeline, and the analysis workspace.
 
