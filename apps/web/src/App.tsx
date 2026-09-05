@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useTheme } from '@/lib/theme'
 import { ProtectedLayout } from '@/components/auth/ProtectedLayout'
 import { Account } from '@/components/pages/Account'
-import { Home } from '@/components/pages/Home'
+import { AnalysisWorkspace } from '@/components/pages/AnalysisWorkspace'
+import { NewAnalysis } from '@/components/pages/NewAnalysis'
 import { Settings } from '@/components/pages/Settings'
 import { SignInPage } from '@/components/pages/SignIn'
 import { SignUpPage } from '@/components/pages/SignUp'
@@ -20,7 +21,8 @@ export default function App() {
         <Route path="/sso-callback" element={<SsoCallbackPage />} />
 
         <Route element={<ProtectedLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<NewAnalysis />} />
+          <Route path="/analysis/:targetId" element={<AnalysisWorkspace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/account" element={<Account />} />
         </Route>

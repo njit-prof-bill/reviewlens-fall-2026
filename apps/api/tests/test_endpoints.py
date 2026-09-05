@@ -307,7 +307,7 @@ class TestMeEndpoint:
         self, client, db_session, monkeypatch
     ):
         """When JWT claims omit profile fields, /api/me should enrich from Clerk API."""
-        import app.routes as routes_module
+        import app.services.identity as identity_module
         from app.db.session import get_db_session
 
         def _mock_identity():
@@ -334,10 +334,10 @@ class TestMeEndpoint:
             }
 
         monkeypatch.setattr(
-            routes_module, "fetch_clerk_user_profile", _mock_fetch_clerk_user_profile
+            identity_module, "fetch_clerk_user_profile", _mock_fetch_clerk_user_profile
         )
         monkeypatch.setattr(
-            routes_module.settings, "clerk_secret_key", "sk_test_example"
+            identity_module.settings, "clerk_secret_key", "sk_test_example"
         )
 
         app.dependency_overrides[get_current_auth_identity] = _mock_identity

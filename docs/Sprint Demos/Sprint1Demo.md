@@ -309,13 +309,9 @@ The workspace should clearly identify:
 
 **Target time: approximately 3-4 minutes**
 
-From the newly created or selected AnalysisTarget, initiate ingestion using the team's supported method.
+From the newly created or selected AnalysisTarget, initiate ingestion from the target's source URL.
 
-The team may use:
-
-1. A publicly accessible review URL.
-2. A supported import format.
-3. Another approved ingestion mechanism.
+Ingestion must be demonstrated from the URL. A supported import format may be shown afterwards as the team's recovery path, but it does not replace the URL demonstration.
 
 Show enough of the workflow to establish that ReviewLens obtains real review data rather than substituting hard-coded demo content.
 

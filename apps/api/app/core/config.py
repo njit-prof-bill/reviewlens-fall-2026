@@ -94,6 +94,11 @@ class Settings(BaseModel):
     clerk_issuer: str | None = None
     clerk_audience: str | None = None
     clerk_secret_key: str | None = None
+    review_provider: str = "serpapi"
+    review_provider_api_key: str | None = None
+    review_provider_timeout_seconds: float = 30.0
+    review_fetch_max: int = 100
+    max_import_file_bytes: int = 2 * 1024 * 1024
     cors_origin_regex: str | None = LOCALHOST_ORIGIN_REGEX
     cors_origins: list[str] = [
         "http://localhost:5173",
@@ -128,6 +133,22 @@ class Settings(BaseModel):
         self.clerk_issuer = os.getenv("CLERK_ISSUER", self.clerk_issuer)
         self.clerk_audience = os.getenv("CLERK_AUDIENCE", self.clerk_audience)
         self.clerk_secret_key = os.getenv("CLERK_SECRET_KEY", self.clerk_secret_key)
+        self.review_provider = os.getenv("REVIEW_PROVIDER", self.review_provider)
+        self.review_provider_api_key = os.getenv(
+            "REVIEW_PROVIDER_API_KEY", self.review_provider_api_key
+        )
+        self.review_provider_timeout_seconds = float(
+            os.getenv(
+                "REVIEW_PROVIDER_TIMEOUT_SECONDS",
+                self.review_provider_timeout_seconds,
+            )
+        )
+        self.review_fetch_max = int(
+            os.getenv("REVIEW_FETCH_MAX", self.review_fetch_max)
+        )
+        self.max_import_file_bytes = int(
+            os.getenv("MAX_IMPORT_FILE_BYTES", self.max_import_file_bytes)
+        )
 
 
 @lru_cache

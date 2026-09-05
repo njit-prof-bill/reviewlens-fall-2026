@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, useClerk, useUser } from '@clerk/clerk-react'
-import { Bell, LogOut, Menu, Search, Settings, User, X } from 'lucide-react'
+import { CircleHelp, LogOut, Menu, Plus, ScanSearch, Settings, User, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -80,16 +80,42 @@ export function Header({
         >
           {isSidebarOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </Button>
-        <div className="size-7 rounded-md bg-primary/10" aria-hidden="true" />
-        <h1 className="text-sm font-semibold tracking-wide text-foreground">{appDisplayName}</h1>
+        <Link to="/" className="flex items-center gap-2">
+          <span
+            className="flex size-7 items-center justify-center rounded-md bg-primary/10"
+            aria-hidden="true"
+          >
+            <ScanSearch className="size-4 text-primary" />
+          </span>
+          <h1 className="text-sm font-semibold tracking-wide text-foreground">
+            {appDisplayName}
+          </h1>
+        </Link>
       </div>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label="Search">
-          <Search className="size-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label="Notifications">
-          <Bell className="size-4" />
-        </Button>
+        <SignedIn>
+          <Button variant="ghost" size="sm" className="gap-2" asChild>
+            <Link to="/">
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">New Analysis</span>
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden gap-2 sm:inline-flex"
+            asChild
+          >
+            <a
+              href="https://support.google.com/maps/answer/7091"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <CircleHelp className="size-4" />
+              How it works
+            </a>
+          </Button>
+        </SignedIn>
         <SignedOut>
           <Button variant="outline" size="sm" className="ml-1 px-3 text-xs" asChild>
             <Link to="/sign-in">Sign in</Link>
