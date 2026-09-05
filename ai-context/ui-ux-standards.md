@@ -1,13 +1,13 @@
 This document contains references to ReviewLens
 
-
 # UI/UX Standards — ReviewLens
- Frontend
+
+Frontend
 
 ## Overview
 
 ReviewLens
- uses **Tailwind CSS** for styling, **shadcn/ui** for component primitives, and **composition wrappers** for customization safety. This document establishes baseline conventions to keep the frontend maintainable and extensible.
+uses **Tailwind CSS** for styling, **shadcn/ui** for component primitives, and **composition wrappers** for customization safety. This document establishes baseline conventions to keep the frontend maintainable and extensible.
 
 ## Component Architecture
 
@@ -206,13 +206,90 @@ export function Button({ variant = "primary", ...props }: ButtonProps) {
 }
 ```
 
+## ReviewLens Analysis Workspace Patterns
+
+The wireframe in `docs/Requirements/ReviewLens UX.png` and
+`docs/Requirements/ReviewLens-UX-Implementation-Reference.md` are authoritative
+for these screens. ReviewLens should read as a research notebook, not a CRUD
+admin dashboard.
+
+### Shell
+
+- Two-part shell: a left analysis panel and the main workspace. On desktop the
+  workspace may add a narrow right-hand scope rail; below `lg` that rail
+  collapses into the content flow.
+- The sidebar behaves like a conversation list: a prominent **New Analysis**
+  action, then the user's analyses.
+- **Label analyses by name, never by source URL.** URLs are too long to
+  distinguish at a glance. A working name is derived from the place slug and the
+  user can rename it.
+
+### Progressive disclosure
+
+- A new analysis shows only a large URL field and **Analyze Reviews**. Nothing
+  else. No empty summary cards, no placeholder charts, no skeleton Q&A.
+- Starting an analysis does not navigate to a different visual world. The same
+  page grows downward into the workspace.
+- The workspace is a numbered vertical progression (`NotebookStep`), which
+  signals that the user is building an analysis over time.
+
+### Statistics
+
+- Ingestion summary values are compact statistics, not prose.
+- Every displayed number comes from persisted data. Never display a metric the
+  application cannot compute reliably, and never generate one with a model.
+  Correctness outranks matching the mockup.
+
+### Status treatments
+
+Four ingestion states must be visually distinct. Conflating the first and the
+last is a defect:
+
+| State              | Treatment                                                  |
+| ------------------ | ---------------------------------------------------------- |
+| Not yet collected  | Neutral, informational. This is a normal starting point.   |
+| Collecting         | Progress affordance with a spinner.                        |
+| Complete / Partial | Success, with partial explaining both counts.              |
+| Failed             | Destructive alert carrying the server's user-safe message. |
+
+Later sprints add three further categories that must not share styling with each
+other or with the above:
+
+- **Insufficient evidence** — a legitimate analysis result. Calm and
+  informational.
+- **Out of scope** — a product guardrail. Firm but restrained. Never generic
+  error language like "Invalid request".
+- **Provider or application failure** — an actual error.
+
+### Errors
+
+- Users never see a stack trace, a database message, an HTTP client exception,
+  or third-party provider text. `lib/api/client.ts` normalizes anything
+  unrecognised, and `ErrorBoundary` catches render failures.
+- Field-level validation messages attach to their input via
+  `ApiErrorDetail.field`.
+- A denied or missing analysis renders a calm "not available" page, not a crash
+  and not an accusatory error.
+
+### Destructive actions
+
+Deletion requires an `AlertDialog` confirmation that names what will be removed
+and states that it cannot be undone.
+
+### Component reuse
+
+Build on the vendored shadcn primitives in `components/ui`. ReviewLens-specific
+composites live in `components/analysis`. Do not restyle a primitive in place;
+compose around it.
+
 ## Known Constraints & Future Work
 
-- **Routing:** Not yet implemented; single-page app at / (home)
-- **Dark mode:** CSS variables prepared but UI not wired to theme toggle
-- **Form validation:** Basic HTML5 validation only; plan for Zod/React Hook Form integration
-- **State management:** No global state library yet; consider Redux/Zustand if needed
-- **Testing:** No test suite yet; plan for Vitest + React Testing Library later
+- **Dark mode:** CSS variables prepared but UI not wired to a theme toggle
+- **Form validation:** hand-rolled; consider Zod/React Hook Form as forms grow
+- **State management:** server state via TanStack Query; no client-state library
+  yet, and none is needed so far
+- **Q&A surfaces:** Sprint 2/3; the workspace deliberately leaves that region
+  empty rather than showing placeholders
 
 ## References
 

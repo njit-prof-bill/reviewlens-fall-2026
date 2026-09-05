@@ -22,10 +22,11 @@ Stories S1-009 through S1-023 define the primary application capabilities for Sp
 
 1. This file is the authoritative source for Sprint 1 scope.
 2. `README.md` provides the overall product description, but Sprint 1 grading is based on this file.
-3. Features described in the overall product but not listed here are not required for Sprint 1.
-4. Technical Guidance defines important implementation expectations but intentionally does not prescribe a specific application architecture, programming language, framework, database, or cloud platform unless explicitly stated.
-5. Teams should make reasonable engineering decisions where implementation details are unspecified.
-6. Features planned for later sprints should not be implemented early unless explicitly approved.
+3. `ReviewLens-UX-Implementation-Reference.md` and the ReviewLens UX reference image are authoritative for user-experience scope. Where this file defines _what_ must work, the UX reference defines _how the application should present it_. A team may not satisfy a story with an interaction model that contradicts the UX reference.
+4. Features described in the overall product but not listed here are not required for Sprint 1.
+5. Technical Guidance defines important implementation expectations but intentionally does not prescribe a specific application architecture, programming language, framework, database, or cloud platform unless explicitly stated.
+6. Teams should make reasonable engineering decisions where implementation details are unspecified.
+7. Features planned for later sprints should not be implemented early unless explicitly approved.
 
 ## Sprint 1 Demonstration Goal
 
@@ -141,7 +142,7 @@ These rules are authoritative for Sprint 1 implementation and grading.
 3. **S1-BR-014**: An AnalysisTarget must identify:
    - the entity being analyzed
    - the team's supported review platform
-   - the source URL or equivalent source reference required for ingestion
+   - the source URL required for ingestion
 4. **S1-BR-015**: Required target information must be validated before the target is accepted.
 5. **S1-BR-016**: A user may view and open only AnalysisTargets owned by that user.
 6. **S1-BR-017**: AnalysisTarget data must persist across refresh and later authenticated sessions.
@@ -149,7 +150,7 @@ These rules are authoritative for Sprint 1 implementation and grading.
 ## S1-BR Review Ingestion
 
 1. **S1-BR-018**: Review ingestion must operate only against an AnalysisTarget owned by the authenticated user.
-2. **S1-BR-019**: The application may collect reviews from a target URL or allow review data to be supplied through a practical supported import mechanism.
+2. **S1-BR-019**: Review ingestion must be initiated from the AnalysisTarget's source URL. The user supplies a URL, and the application is responsible for obtaining review data from it. A supplementary import mechanism may also be offered, but it may not substitute for URL-initiated ingestion.
 3. **S1-BR-020**: At minimum, each successfully ingested Review must contain:
    - review text
    - rating
@@ -159,6 +160,7 @@ These rules are authoritative for Sprint 1 implementation and grading.
 7. **S1-BR-024**: The application must not fabricate review records to make a failed or incomplete ingestion appear successful.
 8. **S1-BR-025**: Invalid or unusable ingestion input must produce a meaningful application error.
 9. **S1-BR-026**: A detailed ingestion analytics summary is not required in Sprint 1. Sprint 1 requires only enough ingestion status to determine whether the operation succeeded or failed.
+10. **S1-BR-027**: If a team offers a supplementary import mechanism, it must be presented as a secondary or recovery path in the user interface, and the team must document when it is intended to be used.
 
 ## Rule Usage in Stories and Jira
 
@@ -174,7 +176,7 @@ These are team-level engineering deliverables. They establish shared expectation
 
 ## S1-001 - Create Engineering Coding Standards Context Document
 
-**Outcome:**  
+**Outcome:**
 The team publishes an engineering context document describing the conventions developers and AI coding tools should follow when modifying the codebase.
 
 **Technical Guidance:**
@@ -196,7 +198,7 @@ The document should describe the team's actual chosen approach rather than gener
 
 ## S1-002 - Create UI/UX Standards Context Document
 
-**Outcome:**  
+**Outcome:**
 The team publishes a UI/UX context document defining the visual and interaction conventions that will keep independently developed ReviewLens features coherent.
 
 **Technical Guidance:**
@@ -218,7 +220,7 @@ The standards should be specific enough that two developers implementing differe
 
 ## S1-003 - Create Data and Security Guardrails Context Document
 
-**Outcome:**  
+**Outcome:**
 The team publishes a context document describing ReviewLens ownership boundaries, authentication assumptions, authorization requirements, secret handling, and prohibited data-access patterns.
 
 **Technical Guidance:**
@@ -239,7 +241,7 @@ A new developer or AI coding tool should be able to read this document and under
 
 ## S1-004 - Create AI-Assisted Development and Review Context Document
 
-**Outcome:**  
+**Outcome:**
 The team publishes a context document describing how AI-assisted code is prompted, reviewed, tested, and approved before merge.
 
 **Technical Guidance:**
@@ -264,7 +266,7 @@ AI-generated code is treated as team-authored code and is subject to the same De
 
 ## S1-005 - Establish Project Structure and Local Development Workflow
 
-**Outcome:**  
+**Outcome:**
 The repository has a stable application structure and documented commands that allow another team member to install dependencies and run the Sprint 1 application locally.
 
 **Technical Guidance:**
@@ -285,7 +287,7 @@ A monorepo is allowed but not required.
 
 ## S1-006 - Configure Code Quality and Automated Test Tooling
 
-**Outcome:**  
+**Outcome:**
 The project has working lint/static-analysis, formatting, and automated unit-test tooling appropriate to the selected technology stack.
 
 **Technical Guidance:**
@@ -299,7 +301,7 @@ The project has working lint/static-analysis, formatting, and automated unit-tes
 
 ## S1-007 - Configure Pull Request Continuous Integration
 
-**Outcome:**  
+**Outcome:**
 Every pull request automatically executes the team's required build, lint/static checks, and unit tests.
 
 **Technical Guidance:**
@@ -316,7 +318,7 @@ The team may use GitHub Actions or another approved CI platform.
 
 ## S1-008 - Configure Environment and Secret Management
 
-**Outcome:**  
+**Outcome:**
 Developers can configure local application dependencies without committing secrets, and the repository documents the environment values required to run the system.
 
 **Technical Guidance:**
@@ -335,7 +337,7 @@ Developers can configure local application dependencies without committing secre
 
 ## S1-009 - Integrate Managed Authentication
 
-**Outcome:**  
+**Outcome:**
 A user can authenticate with the team's selected managed identity provider and establish an authenticated ReviewLens session.
 
 **Technical Guidance:**
@@ -357,7 +359,7 @@ Teams are not graded on recreating authentication UI that the managed service al
 
 ## S1-010 - Protect ReviewLens Routes and Backend Operations
 
-**Outcome:**  
+**Outcome:**
 Unauthenticated users cannot access protected ReviewLens pages or protected backend operations.
 
 **Technical Guidance:**
@@ -379,7 +381,7 @@ Expected automated tests should include at least:
 
 ## S1-011 - Associate User-Owned Data with Authenticated Identity
 
-**Outcome:**  
+**Outcome:**
 When an authenticated user creates a user-owned ReviewLens record, ownership is derived from the verified authenticated identity and persisted with the record.
 
 **Technical Guidance:**
@@ -404,7 +406,7 @@ Whatever approach is selected must be applied consistently to user-scoped record
 
 ## S1-012 - Enforce Cross-User Analysis Target Authorization
 
-**Outcome:**  
+**Outcome:**
 An authenticated user cannot read or modify an AnalysisTarget owned by another authenticated user.
 
 **Technical Guidance:**
@@ -425,7 +427,7 @@ Do not rely on the fact that Target A is absent from User B's UI.
 
 ## S1-013 - Enforce Cross-User Review and Ingestion Authorization
 
-**Outcome:**  
+**Outcome:**
 An authenticated user cannot read, create, modify, or initiate ingestion against review data belonging to another user's AnalysisTarget.
 
 **Technical Guidance:**
@@ -448,7 +450,7 @@ The backend should validate ownership of the parent AnalysisTarget before perfor
 
 ## S1-014 - Implement AnalysisTarget Persistence Model
 
-**Outcome:**  
+**Outcome:**
 The application can persist and retrieve an AnalysisTarget with its required Sprint 1 fields and authenticated owner relationship.
 
 **Technical Guidance:**
@@ -459,7 +461,7 @@ At minimum, an AnalysisTarget must represent:
 2. Authenticated owner.
 3. Entity or target name.
 4. Supported review platform.
-5. Source URL or equivalent source reference.
+5. Source URL.
 6. Creation timestamp.
 
 Teams may include additional fields when useful.
@@ -472,7 +474,7 @@ Tests should verify that a persisted AnalysisTarget can be retrieved with the ex
 
 ## S1-015 - Create an Analysis Target
 
-**Outcome:**  
+**Outcome:**
 An authenticated user can create a new AnalysisTarget from the ReviewLens user interface.
 
 **Technical Guidance:**
@@ -494,7 +496,7 @@ Tests should verify both UI/service behavior and persistence where appropriate.
 
 ## S1-016 - Validate Analysis Target Input
 
-**Outcome:**  
+**Outcome:**
 The application rejects an AnalysisTarget when required target information is missing or the source information is invalid for the team's supported ingestion approach.
 
 **Technical Guidance:**
@@ -508,17 +510,14 @@ At minimum, test:
 3. Clearly malformed source input.
 4. Valid input succeeds.
 
-If the team accepts URLs, the validation should reject values that are not usable URLs.
-
-If the team supports only one platform, teams may additionally validate that submitted URLs reasonably correspond to that platform.
-
+The validation must reject values that are not usable URLs, and must reject URLs that do not reasonably correspond to the team's supported review platform.
 Validation does not need to prove that ingestion will ultimately succeed; actual source accessibility belongs to the ingestion workflow.
 
 **Rules:** S1-BR-012, S1-BR-014, S1-BR-015
 
 ## S1-017 - View My Analysis Targets
 
-**Outcome:**  
+**Outcome:**
 An authenticated user can view a list of their persisted AnalysisTargets.
 
 **Technical Guidance:**
@@ -543,7 +542,7 @@ Tests should demonstrate:
 
 ## S1-018 - Open an Analysis Target Workspace
 
-**Outcome:**  
+**Outcome:**
 A user can select one of their AnalysisTargets and open a stable workspace for performing Sprint 1 ingestion operations.
 
 **Technical Guidance:**
@@ -570,15 +569,14 @@ Direct navigation to a target identifier belonging to another user must be denie
 
 ## S1-019 - Submit Review Source for Ingestion
 
-**Outcome:**  
-An authenticated user can initiate review ingestion for an AnalysisTarget they own using the source mechanism supported by the team.
+**Outcome:**
+An authenticated user can initiate review ingestion for an AnalysisTarget they own from that target's source URL.
 
 **Technical Guidance:**
 
-The team may implement either:
+Ingestion is initiated from the AnalysisTarget's source URL. The team is responsible for obtaining review data from that URL using the mechanism it selected in S1-020.
 
-1. Ingestion from a publicly accessible target URL, or
-2. A practical data-import mechanism appropriate to the supported review platform.
+A team may additionally offer an import mechanism as a recovery path when the source is unavailable, but a team that implements _only_ import has not satisfied this story.
 
 The ingestion request must reference an existing AnalysisTarget.
 
@@ -595,8 +593,8 @@ A request against another user's target must fail before review processing occur
 
 ## S1-020 - Extract or Import Review Data
 
-**Outcome:**  
-The application can obtain representative review data from the team's supported review source and identify individual review records.
+**Outcome:**
+The application can obtain representative review data from the URL supplied for an AnalysisTarget and identify individual review records.
 
 **Technical Guidance:**
 
@@ -605,7 +603,7 @@ At minimum, the ingestion layer must be capable of obtaining:
 1. Written review text.
 2. Rating.
 
-Teams may use scraping, browser automation, a publicly available API, supplied export data, or another practical method consistent with the project requirements.
+Teams may service the URL using a commercial review-data API, a publicly available platform API, scraping, or browser automation. Supplied export data may back a recovery path but does not by itself satisfy this story.
 
 Important constraints:
 
@@ -613,12 +611,13 @@ Important constraints:
 2. The application must not silently substitute hard-coded sample reviews for real ingestion.
 3. Automated tests should use deterministic fixtures, saved representative input, mocks, or equivalent isolation rather than depending entirely on a live website.
 4. Teams should isolate source-specific parsing sufficiently that it can be tested independently of the user interface.
+5. If the team relies on a third-party service to obtain review data, credentials for that service must be server-side (S1-BR-011), and the team must handle provider timeout, provider failure, and quota exhaustion as distinct, non-fabricating outcomes.
 
 **Rules:** S1-BR-019 through S1-BR-021, S1-BR-024
 
 ## S1-021 - Normalize Ingested Reviews
 
-**Outcome:**  
+**Outcome:**
 Raw review-source data is transformed into the application's canonical Review representation before persistence.
 
 **Technical Guidance:**
@@ -651,7 +650,7 @@ The team's handling of invalid individual records should be explicit and consist
 
 ## S1-022 - Persist Ingested Reviews with Target Ownership
 
-**Outcome:**  
+**Outcome:**
 Successfully normalized Reviews are persisted and associated with the correct AnalysisTarget.
 
 **Technical Guidance:**
@@ -674,7 +673,7 @@ Teams should consider how duplicate source reviews could eventually be identifie
 
 ## S1-023 - Record and Report Ingestion Result State
 
-**Outcome:**  
+**Outcome:**
 Each ingestion attempt records enough state for ReviewLens to tell the user whether the operation succeeded or failed.
 
 **Technical Guidance:**

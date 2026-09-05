@@ -1,0 +1,6 @@
+review_id,rating,date,reviewer,review_text
+gm-101,5,2026-07-02T14:31:00Z,Dana Whitfield,Excellent coffee and friendly staff.
+gm-102,,2026-06-11T09:05:00Z,Marcus Lee,This one has no rating at all.
+gm-103,4,2026-05-20T17:42:00Z,Priya Raman,
+gm-104,9,2026-04-08T11:20:00Z,Tom Alvarez,Rating is out of the supported range.
+gm-105,3,not-a-real-date,Sofia Nkemdirim,Usable review with an unparseable date.

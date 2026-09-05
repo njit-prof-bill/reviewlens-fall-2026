@@ -71,6 +71,9 @@ jobs:
       - name: Typecheck web
         working-directory: apps/web
         run: npm run typecheck
+      - name: Test web
+        working-directory: apps/web
+        run: npm test
       - name: Build web
         working-directory: apps/web
         run: npm run build
@@ -93,6 +96,9 @@ jobs:
       - name: Lint api
         working-directory: apps/api
         run: ruff check app tests
+      - name: Check api formatting
+        working-directory: apps/api
+        run: ruff format --check app tests
       - name: Test api
         working-directory: apps/api
         run: pytest

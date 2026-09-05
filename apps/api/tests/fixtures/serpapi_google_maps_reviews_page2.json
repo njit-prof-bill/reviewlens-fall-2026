@@ -1,0 +1,29 @@
+{
+  "search_metadata": {
+    "id": "recorded-fixture-page-2",
+    "status": "Success"
+  },
+  "reviews": [
+    {
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUR5",
+      "link": "https://www.google.com/maps/reviews/data=!4m1!2m1!1s005",
+      "rating": 3,
+      "date": "6 months ago",
+      "iso_date": "2026-03-14T08:02:00Z",
+      "snippet": "Decent coffee, unremarkable pastries. Fine if you are already nearby.",
+      "user": {
+        "name": "Sofia Nkemdirim"
+      }
+    },
+    {
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUR6",
+      "rating": 4,
+      "iso_date": "2026-02-27T15:55:00Z",
+      "snippet": "Reliably good. No seating to speak of, so plan on taking it to go.",
+      "user": {
+        "name": "Henry Osei"
+      }
+    }
+  ],
+  "serpapi_pagination": {}
+}

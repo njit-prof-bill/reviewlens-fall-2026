@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { useTheme } from '@/lib/theme'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AnalysisSidebar } from './AnalysisSidebar'
 import { Header } from './Header'
-import { Navigation } from './Navigation'
 
 export interface LayoutProps {
   children?: React.ReactNode
@@ -40,11 +41,11 @@ export function Layout({ children }: LayoutProps) {
         ) : null}
 
         {/* Left sidebar */}
-        <Navigation isOpen={isSidebarOpen} onNavigate={closeSidebar} />
+        <AnalysisSidebar isOpen={isSidebarOpen} onNavigate={closeSidebar} />
 
         {/* Main content panel */}
-        <main className="flex-1 overflow-y-auto border border-border bg-muted/20 p-6">
-          {children || <Outlet />}
+        <main className="flex-1 overflow-y-auto bg-muted/20">
+          <ErrorBoundary>{children || <Outlet />}</ErrorBoundary>
         </main>
       </div>
     </div>
