@@ -188,16 +188,16 @@ Both choices below are worth making in week 1. The ingestion path in particular 
 
 S1-BR-001 and S1-BR-002 require a managed identity service. Any of the following satisfies the rule.
 
-| Provider | Shape | Worth knowing |
-| --- | --- | --- |
-| **Clerk** | Drop-in React components plus a hosted sign-in UI; publishes a JWKS endpoint for backend verification | Fastest path to a working login on a React + separate-API stack. Free development tier. |
-| **Firebase Authentication** | Google Cloud service; the Admin SDK verifies tokens server-side | Sensible if you are already using Firebase or Google Cloud. Broad provider support. |
-| **Supabase Auth** | Bundled with a hosted Postgres database | Its Row Level Security can enforce ownership in the database itself, which is one legitimate way to satisfy S1-BR-009. Attractive if you also want Supabase as your database. |
-| **Auth0** | Mature, widely deployed, standards-first | The most configuration surface of the four. Powerful, but more to learn. |
+| Provider                    | Shape                                                                                                 | Worth knowing                                                                                                                                                                 |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Clerk**                   | Drop-in React components plus a hosted sign-in UI; publishes a JWKS endpoint for backend verification | Fastest path to a working login on a React + separate-API stack. Free development tier.                                                                                       |
+| **Firebase Authentication** | Google Cloud service; the Admin SDK verifies tokens server-side                                       | Sensible if you are already using Firebase or Google Cloud. Broad provider support.                                                                                           |
+| **Supabase Auth**           | Bundled with a hosted Postgres database                                                               | Its Row Level Security can enforce ownership in the database itself, which is one legitimate way to satisfy S1-BR-009. Attractive if you also want Supabase as your database. |
+| **Auth0**                   | Mature, widely deployed, standards-first                                                              | The most configuration surface of the four. Powerful, but more to learn.                                                                                                      |
 
 Verify current free-tier limits before committing; they change.
 
-### What the provider does *not* do for you
+### What the provider does _not_ do for you
 
 This is the part teams get wrong. A managed provider handles registration, credentials, sessions, and password reset. It does **not** handle authorization.
 
@@ -215,11 +215,11 @@ S1-BR-019 requires ingestion to begin from the AnalysisTarget's source URL. How 
 
 If your chosen platform has a free, documented public review API, use it. If it does not — Google Maps being the notable case — a commercial review-data provider is the practical option.
 
-| Provider | Billing shape | Worth knowing |
-| --- | --- | --- |
-| **SerpApi** | Monthly subscription with a search quota; free tier available | Structured JSON, straightforward request/response, token-based pagination. Each page of reviews costs one search. |
-| **Apify** | Marketplace of "actors"; pay per usage, with a recurring free credit | You start a run and collect results from a dataset, so the integration is asynchronous. More moving parts, more flexibility. |
-| **Outscraper** | Pay-as-you-go with no monthly fee; free tier resets every 30 days | Advertises a discount for student and nonprofit use — worth asking about for a capstone. |
+| Provider       | Billing shape                                                        | Worth knowing                                                                                                                |
+| -------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **SerpApi**    | Monthly subscription with a search quota; free tier available        | Structured JSON, straightforward request/response, token-based pagination. Each page of reviews costs one search.            |
+| **Apify**      | Marketplace of "actors"; pay per usage, with a recurring free credit | You start a run and collect results from a dataset, so the integration is asynchronous. More moving parts, more flexibility. |
+| **Outscraper** | Pay-as-you-go with no monthly fee; free tier resets every 30 days    | Advertises a discount for student and nonprofit use — worth asking about for a capstone.                                     |
 
 Sign up early and confirm the free tier covers development plus demo preparation. Verify current pricing yourself; the figures move.
 
@@ -433,7 +433,7 @@ Provider-hosted or provider-supplied registration and login UI is acceptable.
 
 Teams are not graded on recreating authentication UI that the managed service already provides.
 
-See *Third-Party Service Guidance* for a comparison of Clerk, Firebase Authentication, Supabase Auth, and Auth0, and for what a managed provider does not do for you.
+See _Third-Party Service Guidance_ for a comparison of Clerk, Firebase Authentication, Supabase Auth, and Auth0, and for what a managed provider does not do for you.
 
 **Rules:** S1-BR-001 through S1-BR-006
 
@@ -693,7 +693,7 @@ Important constraints:
 4. Teams should isolate source-specific parsing sufficiently that it can be tested independently of the user interface.
 5. If the team relies on a third-party service to obtain review data, credentials for that service must be server-side (S1-BR-011), and the team must handle provider timeout, provider failure, and quota exhaustion as distinct, non-fabricating outcomes.
 
-See *Third-Party Service Guidance* for a comparison of SerpApi, Apify, and Outscraper, for why the official Google Places API is a poor fit, and for working within a provider quota.
+See _Third-Party Service Guidance_ for a comparison of SerpApi, Apify, and Outscraper, for why the official Google Places API is a poor fit, and for working within a provider quota.
 
 **Rules:** S1-BR-019 through S1-BR-021, S1-BR-024
 
