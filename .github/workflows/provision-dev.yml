@@ -66,6 +66,16 @@ on:
         description: Secrets Manager ARN for the database URL
         required: true
         type: string
+      openai_api_key_arn:
+        description: Optional Secrets Manager ARN for the OpenAI API key
+        required: false
+        default: ""
+        type: string
+      openai_model:
+        description: OpenAI model used for review Q&A
+        required: false
+        default: gpt-4.1-mini
+        type: string
       cors_origins:
         description: Optional CORS origins CSV
         required: false
@@ -107,6 +117,8 @@ env:
   CLERK_PUBLISHABLE_KEY: ${{ inputs.clerk_publishable_key }}
   CLERK_SECRET_KEY_ARN: ${{ inputs.clerk_secret_key_arn }}
   RDS_DATABASE_URL_ARN: ${{ inputs.rds_database_url_arn }}
+  OPENAI_API_KEY_ARN: ${{ inputs.openai_api_key_arn }}
+  OPENAI_MODEL: ${{ inputs.openai_model }}
   CORS_ORIGINS: ${{ inputs.cors_origins }}
   BACKEND_PLATFORM: ${{ inputs.backend_platform }}
   ENABLE_APP_RUNNER: ${{ inputs.enable_app_runner }}
@@ -169,6 +181,9 @@ jobs:
           clerk_publishable_key = "${CLERK_PUBLISHABLE_KEY}"
           clerk_secret_key_arn = "${CLERK_SECRET_KEY_ARN}"
           rds_database_url_arn = "${RDS_DATABASE_URL_ARN}"
+          openai_api_key_arn = "${OPENAI_API_KEY_ARN:-}"
+          llm_provider = "openai"
+          openai_model = "${OPENAI_MODEL:-gpt-4.1-mini}"
           cors_origins = "${CORS_ORIGINS:-}"
           backend_platform = "${BACKEND_PLATFORM}"
           enable_app_runner = ${ENABLE_APP_RUNNER}

@@ -14,6 +14,19 @@ variable "database_url_arn" {
   type      = string
   sensitive = true
 }
+variable "openai_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+variable "llm_provider" {
+  type    = string
+  default = "openai"
+}
+variable "openai_model" {
+  type    = string
+  default = "gpt-4.1-mini"
+}
 variable "clerk_jwks_url_param_arn" { type = string }
 variable "cors_origins_param_arn" { type = string }
 variable "clerk_issuer_param_arn" { type = string }
@@ -43,6 +56,12 @@ locals {
   container_secrets = concat(
     local.api_secrets,
     local.optional_clerk_secrets,
+  )
+  api_runtime_secrets = concat(
+    local.container_secrets,
+    var.openai_api_key_arn != "" ? [
+      { name = "OPENAI_API_KEY", valueFrom = var.openai_api_key_arn },
+    ] : [],
   )
 }
 
@@ -169,6 +188,7 @@ resource "aws_iam_role_policy" "execution_configuration" {
         var.cors_origins_param_arn,
         var.clerk_issuer_param_arn,
         var.clerk_audience_param_arn,
+        var.openai_api_key_arn,
       ])
     }]
   })
@@ -192,7 +212,11 @@ resource "aws_ecs_task_definition" "api" {
     image        = local.image_uri
     essential    = true
     portMappings = [{ containerPort = 8000, protocol = "tcp" }]
-    secrets      = local.container_secrets
+    secrets      = local.api_runtime_secrets
+    environment = [
+      { name = "LLM_PROVIDER", value = var.llm_provider },
+      { name = "OPENAI_MODEL", value = var.openai_model },
+    ]
     logConfiguration = {
       logDriver = "awslogs"
       options = {

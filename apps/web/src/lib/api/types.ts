@@ -22,6 +22,7 @@ export interface IngestionRun {
   source_kind: 'url_fetch' | 'file_import'
   reviews_ingested: number
   reviews_rejected: number
+  rejection_reasons: Record<string, number> | null
   error_code: string | null
   error_message: string | null
   started_at: string | null
@@ -55,6 +56,33 @@ export interface AnalysisTargetSummary {
   earliest_review: string | null
   latest_review: string | null
   latest_run: IngestionRun | null
+}
+
+export type QAResultKind = 'grounded' | 'insufficient_evidence' | 'out_of_scope'
+
+export interface QAEvidence {
+  review_id: string | null
+  excerpt: string
+  rating: number | null
+  reviewer_name: string | null
+  reviewed_at: string | null
+}
+
+export interface QAEntry {
+  id: string
+  analysis_target_id: string
+  question: string
+  answer: string
+  result_kind: QAResultKind
+  provider: string
+  model: string
+  context_review_count: number
+  created_at: string
+  evidence: QAEvidence[]
+}
+
+export interface QAEntryList {
+  items: QAEntry[]
 }
 
 export const PLATFORM_LABELS: Record<string, string> = {

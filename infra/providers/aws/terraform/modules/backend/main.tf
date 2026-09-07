@@ -49,6 +49,22 @@ variable "database_url_arn" {
   sensitive = true
 }
 
+variable "openai_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "llm_provider" {
+  type    = string
+  default = "openai"
+}
+
+variable "openai_model" {
+  type    = string
+  default = "gpt-4.1-mini"
+}
+
 variable "clerk_jwks_url_param_arn" {
   type = string
 }
@@ -147,10 +163,11 @@ resource "aws_iam_role_policy" "secrets_manager" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [
+        Resource = compact([
           var.clerk_secret_key_arn,
-          var.database_url_arn
-        ]
+          var.database_url_arn,
+          var.openai_api_key_arn
+        ])
       }
     ]
   })
@@ -208,6 +225,11 @@ resource "aws_apprunner_service" "main" {
       image_configuration {
         port = "8000"
 
+        runtime_environment_variables = {
+          "LLM_PROVIDER" = var.llm_provider
+          "OPENAI_MODEL" = var.openai_model
+        }
+
         runtime_environment_secrets = merge(
           {
             "CLERK_SECRET_KEY" = var.clerk_secret_key_arn
@@ -220,6 +242,9 @@ resource "aws_apprunner_service" "main" {
           } : {},
           var.clerk_audience_param_arn != "" ? {
             "CLERK_AUDIENCE" = var.clerk_audience_param_arn
+          } : {},
+          var.openai_api_key_arn != "" ? {
+            "OPENAI_API_KEY" = var.openai_api_key_arn
           } : {}
         )
       }

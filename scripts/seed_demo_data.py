@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Seed the two demo accounts required by the Sprint 1 demo script.
+"""Seed the accounts and review datasets required by the Sprint 2 demo script.
 
 The demo expects meaningful persisted data before the clock starts: User A with
 two or more targets and one dataset of 15-20+ reviews, User B with one target
@@ -14,6 +14,7 @@ Usage:
         --user-a-clerk-id user_2abc... --user-a-email a@example.com \
         --user-b-clerk-id user_2def... --user-b-email b@example.com \
         --user-a-reviews ~/demo/blue-bottle.json \
+        --user-a-second-reviews ~/demo/tartine.json \
         --user-b-reviews ~/demo/downtown-hotel.json
 
 Re-running is safe: targets are matched by owner and source URL.
@@ -21,21 +22,20 @@ Re-running is safe: targets are matched by owner and source URL.
 
 import argparse
 import sys
-import uuid
-from datetime import datetime, timezone
+from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "apps" / "api"))
 
-from sqlalchemy import select  # noqa: E402
-
-from app.db.models import AnalysisTarget, IngestionRun, Review, User  # noqa: E402
-from app.db.session import SessionLocal  # noqa: E402
-from app.domain import IngestionSourceKind, IngestionStatus  # noqa: E402
-from app.services.ingestion.normalizer import normalize_all  # noqa: E402
-from app.services.ingestion.sources.file_import import parse_upload  # noqa: E402
-from app.services.source_url import validate_source_url  # noqa: E402
+from app.db.models import AnalysisTarget, IngestionRun, Review, User
+from app.db.session import SessionLocal
+from app.domain import IngestionSourceKind, IngestionStatus
+from app.services.ingestion.normalizer import normalize_all
+from app.services.ingestion.sources.file_import import parse_upload
+from app.services.source_url import validate_source_url
+from sqlalchemy import select
 
 DEFAULT_A_URL = (
     "https://www.google.com/maps/place/Blue+Bottle+Coffee/"
@@ -48,6 +48,10 @@ DEFAULT_A_SECOND_URL = (
 DEFAULT_B_URL = (
     "https://www.google.com/maps/place/Downtown+Hotel/"
     "@40.7128,-74.0060,17z/data=!4m6!3m5!1s0x89c25a1b1b1b1b1b:0x9abc2345"
+)
+DEFAULT_A_EMPTY_URL = (
+    "https://www.google.com/maps/place/Empty+Demo+Target/"
+    "@37.7700,-122.4100,17z/data=!4m6!3m5!1s0x808580abcdef:0x4567abcd"
 )
 
 
@@ -107,7 +111,7 @@ def load_reviews(session, target: AnalysisTarget, review_file: Path) -> int:
     if not accepted:
         raise SystemExit(f"No usable reviews found in {review_file}")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     run = IngestionRun(
         analysis_target_id=target.id,
         status=(
@@ -118,6 +122,7 @@ def load_reviews(session, target: AnalysisTarget, review_file: Path) -> int:
         source_kind=IngestionSourceKind.FILE_IMPORT.value,
         reviews_ingested=len(accepted),
         reviews_rejected=len(rejected),
+        rejection_reasons=dict(Counter(item.reason for item in rejected)) or None,
         started_at=now,
         completed_at=now,
     )
@@ -157,16 +162,23 @@ def main() -> None:
     parser.add_argument("--user-b-clerk-id", required=True)
     parser.add_argument("--user-b-email", required=True)
     parser.add_argument("--user-a-reviews", type=Path, required=True)
+    parser.add_argument("--user-a-second-reviews", type=Path, required=True)
     parser.add_argument("--user-b-reviews", type=Path, required=True)
     parser.add_argument("--user-a-url", default=DEFAULT_A_URL)
     parser.add_argument("--user-a-second-url", default=DEFAULT_A_SECOND_URL)
     parser.add_argument("--user-b-url", default=DEFAULT_B_URL)
+    parser.add_argument("--user-a-empty-url", default=DEFAULT_A_EMPTY_URL)
     parser.add_argument("--user-a-name", default="Blue Bottle Coffee - Mint Plaza")
     parser.add_argument("--user-a-second-name", default="Tartine Bakery")
     parser.add_argument("--user-b-name", default="Downtown Hotel")
+    parser.add_argument("--user-a-empty-name", default="Empty Demo Target")
     args = parser.parse_args()
 
-    for path in (args.user_a_reviews, args.user_b_reviews):
+    for path in (
+        args.user_a_reviews,
+        args.user_a_second_reviews,
+        args.user_b_reviews,
+    ):
         if not path.exists():
             raise SystemExit(f"Review file not found: {path}")
 
@@ -185,9 +197,15 @@ def main() -> None:
         )
         count_a = load_reviews(session, target_a, args.user_a_reviews)
         warn_if_thin(args.user_a_name, count_a, 15)
-        # A second target proves the list is populated, not a single lucky record.
-        get_or_create_target(
+        target_a_second = get_or_create_target(
             session, user_a, args.user_a_second_name, args.user_a_second_url
+        )
+        count_a_second = load_reviews(
+            session, target_a_second, args.user_a_second_reviews
+        )
+        warn_if_thin(args.user_a_second_name, count_a_second, 15)
+        get_or_create_target(
+            session, user_a, args.user_a_empty_name, args.user_a_empty_url
         )
 
         print(f"User B: {user_b.id}")

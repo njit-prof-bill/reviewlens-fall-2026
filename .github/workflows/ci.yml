@@ -56,6 +56,8 @@ jobs:
     if: ${{ needs.detect-changes.outputs.web == 'true' || github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -73,7 +75,22 @@ jobs:
         run: npm run typecheck
       - name: Test web
         working-directory: apps/web
-        run: npm test
+        run: npm run test:coverage
+      - name: Setup Python for changed-line coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install changed-line coverage tool
+        if: ${{ github.event_name == 'pull_request' }}
+        run: pip install 'diff-cover>=9.0.0,<10.0.0'
+      - name: Enforce 80% changed-line coverage for web
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: apps/web
+        run: >-
+          diff-cover coverage/cobertura-coverage.xml
+          --compare-branch=origin/${{ github.base_ref }}
+          --fail-under=80
       - name: Build web
         working-directory: apps/web
         run: npm run build
@@ -84,6 +101,8 @@ jobs:
     if: ${{ needs.detect-changes.outputs.api == 'true' || github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -101,4 +120,11 @@ jobs:
         run: ruff format --check app tests
       - name: Test api
         working-directory: apps/api
-        run: pytest
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml
+      - name: Enforce 80% changed-line coverage for api
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: apps/api
+        run: >-
+          diff-cover coverage.xml
+          --compare-branch=origin/${{ github.base_ref }}
+          --fail-under=80

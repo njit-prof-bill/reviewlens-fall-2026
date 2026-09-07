@@ -19,6 +19,7 @@ class IngestionRunResponse(BaseModel):
     source_kind: str
     reviews_ingested: int
     reviews_rejected: int
+    rejection_reasons: dict[str, int] | None = None
     error_code: str | None = None
     error_message: str | None = None
     started_at: datetime | None = None

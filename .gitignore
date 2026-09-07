@@ -28,6 +28,8 @@ venv/
 *.egg-info/
 .eggs/
 htmlcov/
+.coverage
+coverage.xml
 
 # Logs
 *.log

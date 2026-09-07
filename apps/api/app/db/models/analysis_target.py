@@ -42,3 +42,6 @@ class AnalysisTarget(Base):
     ingestion_runs = relationship(
         "IngestionRun", back_populates="analysis_target", cascade="all, delete-orphan"
     )
+    qa_entries = relationship(
+        "QAEntry", back_populates="analysis_target", cascade="all, delete-orphan"
+    )

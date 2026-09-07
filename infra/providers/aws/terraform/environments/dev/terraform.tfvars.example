@@ -17,6 +17,11 @@ clerk_publishable_key   = "pk_test_..."
 # These ARNs are output by bootstrap-state.sh; paste them here
 clerk_secret_key_arn    = "arn:aws:secretsmanager:us-east-1:123456789:secret:<app-slug>-clerk-secret-key-XXXXX"
 rds_database_url_arn    = "arn:aws:secretsmanager:us-east-1:123456789:secret:<app-slug>-database-url-XXXXX"
+openai_api_key_arn      = "arn:aws:secretsmanager:us-east-1:123456789:secret:<app-slug>-openai-api-key-XXXXX"
+
+# Review Q&A
+llm_provider = "openai"
+openai_model = "gpt-4.1-mini"
 
 # RDS Configuration
 rds_instance_class      = "db.t4g.micro"

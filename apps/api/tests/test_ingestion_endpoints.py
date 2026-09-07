@@ -168,6 +168,10 @@ class TestUrlIngestion:
         assert run["status"] == "partial"
         assert run["reviews_ingested"] == 1
         assert run["reviews_rejected"] == 2
+        assert run["rejection_reasons"] == {
+            "missing_review_text": 1,
+            "missing_or_invalid_rating": 1,
+        }
 
 
 class TestIngestionFailure:
@@ -293,6 +297,10 @@ class TestFileImportFallback:
         assert run["status"] == "partial"
         assert run["reviews_ingested"] == 2
         assert run["reviews_rejected"] == 3
+        assert run["rejection_reasons"] == {
+            "missing_review_text": 1,
+            "missing_or_invalid_rating": 2,
+        }
 
     def test_an_unparseable_file_fails_without_persisting_reviews(
         self, client_factory, user_a, target_a

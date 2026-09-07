@@ -3,6 +3,8 @@ import type {
   AnalysisTarget,
   AnalysisTargetSummary,
   IngestionRun,
+  QAEntry,
+  QAEntryList,
   ReviewList,
 } from '@/lib/api/types'
 
@@ -74,4 +76,20 @@ export function startFileImport(id: string, file: File, getToken: TokenGetter) {
 
 export function getIngestionRun(runId: string, getToken: TokenGetter, signal?: AbortSignal) {
   return apiFetch<IngestionRun>(`/api/v1/ingestion-runs/${runId}`, { getToken, signal })
+}
+
+export function listTargetQuestions(
+  id: string,
+  getToken: TokenGetter,
+  signal?: AbortSignal,
+) {
+  return apiFetch<QAEntryList>(`${BASE}/${id}/questions`, { getToken, signal })
+}
+
+export function askTargetQuestion(id: string, question: string, getToken: TokenGetter) {
+  return apiFetch<QAEntry>(`${BASE}/${id}/questions`, {
+    method: 'POST',
+    body: { question },
+    getToken,
+  })
 }

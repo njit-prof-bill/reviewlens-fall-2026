@@ -61,6 +61,25 @@ variable "clerk_secret_key_arn" {
   sensitive   = true
 }
 
+variable "openai_api_key_arn" {
+  description = "ARN of Secrets Manager secret containing OPENAI_API_KEY"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "llm_provider" {
+  description = "Review Q&A provider adapter"
+  type        = string
+  default     = "openai"
+}
+
+variable "openai_model" {
+  description = "OpenAI model used for review Q&A"
+  type        = string
+  default     = "gpt-4.1-mini"
+}
+
 # Database
 variable "rds_database_url_arn" {
   description = "ARN of Secrets Manager secret containing DATABASE_URL (created by bootstrap script)"

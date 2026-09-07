@@ -6,6 +6,7 @@ run stores only a user-safe message (S1-BR-024).
 
 import logging
 import uuid
+from collections import Counter
 from collections.abc import Callable
 from datetime import UTC, datetime
 
@@ -48,11 +49,13 @@ def _finish(
     status: IngestionStatus,
     ingested: int = 0,
     rejected: int = 0,
+    rejection_reasons: dict[str, int] | None = None,
     error_code: IngestionErrorCode | None = None,
 ) -> None:
     run.status = status.value
     run.reviews_ingested = ingested
     run.reviews_rejected = rejected
+    run.rejection_reasons = rejection_reasons or None
     run.error_code = error_code.value if error_code else None
     run.error_message = INGESTION_ERROR_MESSAGES[error_code] if error_code else None
     run.completed_at = datetime.now(UTC)
@@ -107,6 +110,7 @@ def execute_ingestion_run(
                 run,
                 IngestionStatus.FAILED,
                 rejected=len(rejected),
+                rejection_reasons=dict(Counter(item.reason for item in rejected)),
                 error_code=IngestionErrorCode.NO_USABLE_REVIEWS,
             )
             return
@@ -138,6 +142,7 @@ def execute_ingestion_run(
             status,
             ingested=len(accepted),
             rejected=len(rejected),
+            rejection_reasons=dict(Counter(item.reason for item in rejected)),
         )
     finally:
         session.close()
