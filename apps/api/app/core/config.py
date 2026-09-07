@@ -99,6 +99,11 @@ class Settings(BaseModel):
     review_provider_timeout_seconds: float = 30.0
     review_fetch_max: int = 100
     max_import_file_bytes: int = 2 * 1024 * 1024
+    llm_provider: str = "openai"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4.1-mini"
+    llm_timeout_seconds: float = 30.0
+    qa_max_context_characters: int = 60_000
     cors_origin_regex: str | None = LOCALHOST_ORIGIN_REGEX
     cors_origins: list[str] = [
         "http://localhost:5173",
@@ -148,6 +153,15 @@ class Settings(BaseModel):
         )
         self.max_import_file_bytes = int(
             os.getenv("MAX_IMPORT_FILE_BYTES", self.max_import_file_bytes)
+        )
+        self.llm_provider = os.getenv("LLM_PROVIDER", self.llm_provider)
+        self.openai_api_key = os.getenv("OPENAI_API_KEY", self.openai_api_key)
+        self.openai_model = os.getenv("OPENAI_MODEL", self.openai_model)
+        self.llm_timeout_seconds = float(
+            os.getenv("LLM_TIMEOUT_SECONDS", self.llm_timeout_seconds)
+        )
+        self.qa_max_context_characters = int(
+            os.getenv("QA_MAX_CONTEXT_CHARACTERS", self.qa_max_context_characters)
         )
 
 

@@ -9,6 +9,7 @@
 #   - AWS_REGION (default: us-east-1)
 #   - AWS_ACCOUNT_ID (auto-detected if AWS CLI configured)
 #   - CLERK_SECRET_KEY (required)
+#   - OPENAI_API_KEY (required for review Q&A)
 
 set -e
 
@@ -63,6 +64,13 @@ read -sp "Enter CLERK_SECRET_KEY: " CLERK_SECRET_KEY
 echo ""
 if [ -z "$CLERK_SECRET_KEY" ]; then
   echo "Error: CLERK_SECRET_KEY required"
+  exit 1
+fi
+
+read -sp "Enter OPENAI_API_KEY: " OPENAI_API_KEY
+echo ""
+if [ -z "$OPENAI_API_KEY" ]; then
+  echo "Error: OPENAI_API_KEY required"
   exit 1
 fi
 
@@ -140,6 +148,18 @@ if ! aws secretsmanager create-secret \
     --secret-string "$DATABASE_URL"
 fi
 
+# OPENAI_API_KEY secret
+if ! aws secretsmanager create-secret \
+  --name "${SECRETS_PREFIX}-openai-api-key" \
+  --region "$AWS_REGION" \
+  --secret-string "$OPENAI_API_KEY" \
+  2>/dev/null; then
+  aws secretsmanager update-secret \
+    --secret-id "${SECRETS_PREFIX}-openai-api-key" \
+    --region "$AWS_REGION" \
+    --secret-string "$OPENAI_API_KEY"
+fi
+
 # CLERK_SECRET_KEY secret
 if ! aws secretsmanager create-secret \
   --name "${SECRETS_PREFIX}-clerk-secret-key" \
@@ -174,9 +194,16 @@ CLERK_SECRET_KEY_ARN=$(aws secretsmanager describe-secret \
   --query 'ARN' \
   --output text)
 
+OPENAI_API_KEY_ARN=$(aws secretsmanager describe-secret \
+  --secret-id "${SECRETS_PREFIX}-openai-api-key" \
+  --region "$AWS_REGION" \
+  --query 'ARN' \
+  --output text)
+
 echo ""
 echo "DATABASE_URL_ARN: $DATABASE_URL_ARN"
 echo "CLERK_SECRET_KEY_ARN: $CLERK_SECRET_KEY_ARN"
+echo "OPENAI_API_KEY_ARN: $OPENAI_API_KEY_ARN"
 echo ""
 echo "3. Update terraform.tfvars with the above ARNs"
 echo ""

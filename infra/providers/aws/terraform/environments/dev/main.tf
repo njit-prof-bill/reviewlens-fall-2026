@@ -71,6 +71,9 @@ module "backend" {
   # Secrets Manager secret ARNs
   clerk_secret_key_arn = var.clerk_secret_key_arn
   database_url_arn     = var.rds_database_url_arn
+  openai_api_key_arn   = var.openai_api_key_arn
+  llm_provider         = var.llm_provider
+  openai_model         = var.openai_model
 
   # SSM Parameter Store ARNs (created by secrets module)
   clerk_jwks_url_param_arn = module.secrets.ssm_clerk_jwks_url_arn
@@ -95,6 +98,9 @@ module "ecs" {
 
   clerk_secret_key_arn     = var.clerk_secret_key_arn
   database_url_arn         = var.rds_database_url_arn
+  openai_api_key_arn       = var.openai_api_key_arn
+  llm_provider             = var.llm_provider
+  openai_model             = var.openai_model
   clerk_jwks_url_param_arn = module.secrets.ssm_clerk_jwks_url_arn
   cors_origins_param_arn   = module.secrets.ssm_cors_origins_arn
   clerk_issuer_param_arn   = var.clerk_issuer != "" ? module.secrets.ssm_clerk_issuer_arn : ""

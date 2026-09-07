@@ -22,3 +22,11 @@ class ResourceNotFoundError(Exception):
     def __init__(self, message: str = "Resource not found"):
         super().__init__(message)
         self.message = message
+
+
+class ServiceUnavailableError(Exception):
+    """Raised when an external dependency cannot safely fulfill a request."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message

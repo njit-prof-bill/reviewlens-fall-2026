@@ -101,7 +101,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
 
 **Secrets & Configuration:**
 
-- Secrets Manager: stores CLERK_SECRET_KEY and DATABASE_URL; created by bootstrap script (not managed by Terraform)
+- Secrets Manager: stores CLERK_SECRET_KEY, DATABASE_URL, and OPENAI_API_KEY; created by bootstrap script (not managed by Terraform)
 - SSM Parameter Store: stores non-sensitive config (CLERK*JWKS_URL, CORS_ORIGINS, VITE*\* build vars)
 - No sensitive values ever land in Terraform state; secrets are referenced by ARN only
 - Clerk issuer/audience are optional for compatibility but recommended for strict JWT validation
@@ -110,6 +110,7 @@ The AWS account, IAM OIDC provider, and GitHub ↔ AWS trust relationship are no
 
 - VPC with 2 public subnets (App Runner, NAT Gateway) and 2 private subnets (RDS)
 - NAT Gateway enables backend outbound internet access (required for Clerk API calls)
+- NAT egress also permits the API runtime to call the configured Q&A provider.
 - Security groups restrict RDS inbound to App Runner VPC connector only
 - Private RDS access improves security posture for dev environment
 

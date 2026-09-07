@@ -48,6 +48,18 @@ interface IngestionSummaryCardProps {
   isLoading: boolean
 }
 
+const REJECTION_REASON_LABELS: Record<string, string> = {
+  missing_review_text: 'missing review text',
+  missing_or_invalid_rating: 'missing or invalid rating',
+}
+
+function rejectionSummary(reasons: Record<string, number> | null): string {
+  if (!reasons) return 'No reason details were recorded.'
+  return Object.entries(reasons)
+    .map(([reason, count]) => `${count} ${REJECTION_REASON_LABELS[reason] ?? reason}`)
+    .join(', ')
+}
+
 export function IngestionSummaryCard({ summary, isLoading }: IngestionSummaryCardProps) {
   if (isLoading || !summary) {
     return (
@@ -105,8 +117,8 @@ export function IngestionSummaryCard({ summary, isLoading }: IngestionSummaryCar
             <AlertTriangle className="size-4" />
             <AlertTitle>Some reviews could not be used</AlertTitle>
             <AlertDescription>
-              {run.reviews_ingested} collected, {run.reviews_rejected} skipped because they
-              were missing review text or a rating.
+              {run.reviews_ingested} collected and {run.reviews_rejected} skipped:{' '}
+              {rejectionSummary(run.rejection_reasons)}.
             </AlertDescription>
           </Alert>
         ) : null}

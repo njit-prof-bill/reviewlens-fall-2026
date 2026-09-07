@@ -18,6 +18,12 @@ from app.schemas.ingestion import (
     IngestionRunResponse,
     StartIngestionRequest,
 )
+from app.schemas.qa import (
+    QAEntryListResponse,
+    QAEntryResponse,
+    QAEvidenceResponse,
+    QuestionRequest,
+)
 from app.schemas.review import (
     AnalysisTargetSummaryResponse,
     ReviewListResponse,
@@ -38,6 +44,10 @@ __all__ = [
     "HealthResponse",
     "IngestionRunListResponse",
     "IngestionRunResponse",
+    "QAEntryListResponse",
+    "QAEntryResponse",
+    "QAEvidenceResponse",
+    "QuestionRequest",
     "ReviewListResponse",
     "ReviewResponse",
     "StartIngestionRequest",

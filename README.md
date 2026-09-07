@@ -1,16 +1,14 @@
 This document contains references to ReviewLens
 
-
 # ReviewLens
 
-
 ReviewLens
- is a reusable application template for small SaaS products.
+is a reusable application template for small SaaS products.
 
 It provides the common foundation for future apps, including layout conventions, authentication wiring, API structure, database setup, CI/CD validation, and deployment plumbing.
 
 ReviewLens
- is not itself a production product. Its purpose is to validate and preserve the reusable starting point for future applications.
+is not itself a production product. Its purpose is to validate and preserve the reusable starting point for future applications.
 
 ---
 
@@ -40,7 +38,7 @@ For a full step-by-step adoption path from fresh clone to local and AWS deployme
 ```
 
 By default, all values remain set to ReviewLens
- so current behavior, tests, and deployments are unchanged.
+so current behavior, tests, and deployments are unchanged.
 
 ---
 
@@ -159,6 +157,17 @@ App URLs:
 - Frontend: `http://localhost:5173`
 - Backend health: `http://127.0.0.1:8000/api/v1/health`
 
+### Sprint 2 Review Q&A
+
+ReviewLens now supports persisted, review-grounded questions for the active
+AnalysisTarget. Configure `OPENAI_API_KEY` in `apps/api/.env`, run `alembic
+upgrade head`, and see `docs/setup/local-development.md` for the complete local
+configuration and coverage commands. The browser never receives the OpenAI key.
+
+The workspace presents Q&A as notebook entries rather than a general-purpose
+chat. Answers are classified as grounded, insufficient evidence, or out of
+scope, and grounded answers include validated snapshots of supporting reviews.
+
 ### Stop Local Dev Environment
 
 1. Stop frontend and backend with `Ctrl+C` in their terminals.
@@ -208,7 +217,7 @@ Use local `terraform.tfvars` files for environment values and secrets, and keep 
 | `scripts/dev-db-reset.sh`                   | Wipe and recreate the local database                                                                                   |
 
 `cloud-status.sh` is template-portable: it derives the resource name prefix from `GITHUB_REPO` in `aws-env.sh`, so apps built from ReviewLens
- only need to update that one variable.
+only need to update that one variable.
 
 ## AWS Manual Setup Notes
 
@@ -256,6 +265,8 @@ Provision workflow inputs:
 - `CLERK_PUBLISHABLE_KEY`: Clerk publishable key used by frontend builds
 - `CLERK_SECRET_KEY_ARN`: Secrets Manager ARN for the Clerk secret key
 - `RDS_DATABASE_URL_ARN`: Secrets Manager ARN for the database URL
+- `OPENAI_API_KEY_ARN`: Secrets Manager ARN for the OpenAI API key
+- `OPENAI_MODEL`: OpenAI model name; defaults to `gpt-4.1-mini`
 - `CORS_ORIGINS`: CloudFront URL after first provision; may be blank on the first run
 - `CLERK_ISSUER`: optional
 - `CLERK_AUDIENCE`: optional
@@ -300,9 +311,12 @@ Backend image behavior in deploy workflow:
 - Reuses existing SHA-tagged image when present (unless `FORCE_BACKEND_REBUILD=true`)
 - Builds and pushes new image when SHA tag is missing
 
-Important constraint:
+Database migration behavior:
 
-- GitHub-hosted runners cannot directly reach the current private RDS instance, so database migrations are not part of `deploy-dev.yml` yet.
+- GitHub-hosted runners cannot directly reach private RDS.
+- ECS deployments run `alembic upgrade head` in a one-off task inside the VPC
+  before updating the API service.
+- The legacy App Runner path does not provide an equivalent migration task.
 
 Teardown behavior summary:
 

@@ -8,11 +8,14 @@ import { renderWithProviders } from '@/test/utils'
 const getAnalysisTarget = vi.fn()
 const getTargetSummary = vi.fn()
 const listTargetReviews = vi.fn()
+const listTargetQuestions = vi.fn()
 
 vi.mock('@/lib/api/analysisTargets', () => ({
   getAnalysisTarget: (...args: unknown[]) => getAnalysisTarget(...args),
   getTargetSummary: (...args: unknown[]) => getTargetSummary(...args),
   listTargetReviews: (...args: unknown[]) => listTargetReviews(...args),
+  listTargetQuestions: (...args: unknown[]) => listTargetQuestions(...args),
+  askTargetQuestion: vi.fn(),
   getIngestionRun: vi.fn(),
   startUrlIngestion: vi.fn(),
   startFileImport: vi.fn(),
@@ -43,6 +46,7 @@ beforeEach(() => {
     latest_run: null,
   })
   listTargetReviews.mockResolvedValue({ items: [], total: 0, limit: 5, offset: 0 })
+  listTargetQuestions.mockResolvedValue({ items: [] })
 })
 
 describe('AnalysisWorkspace', () => {
@@ -61,6 +65,7 @@ describe('AnalysisWorkspace', () => {
 
     expect(await screen.findByText('Ingestion Summary')).toBeInTheDocument()
     expect(await screen.findByText('Review Preview')).toBeInTheDocument()
+    expect(await screen.findByText('Ask the Reviews')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /analyze reviews/i })).toBeInTheDocument()
   })
 

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
+  askTargetQuestion,
   createAnalysisTarget,
   deleteAnalysisTarget,
   getAnalysisTarget,
@@ -8,6 +9,7 @@ import {
   getTargetSummary,
   listAnalysisTargets,
   listTargetReviews,
+  listTargetQuestions,
   renameAnalysisTarget,
   startFileImport,
   startUrlIngestion,
@@ -22,6 +24,7 @@ export const analysisKeys = {
   summary: (id: string) => ['analysis-targets', id, 'summary'] as const,
   reviews: (id: string, offset: number) =>
     ['analysis-targets', id, 'reviews', offset] as const,
+  questions: (id: string) => ['analysis-targets', id, 'questions'] as const,
   run: (runId: string) => ['ingestion-runs', runId] as const,
 }
 
@@ -67,6 +70,28 @@ export function useTargetReviews(id: string | undefined, limit = 5, offset = 0) 
     queryFn: ({ signal }) => listTargetReviews(id!, { limit, offset }, getToken, signal),
     enabled: Boolean(id),
     retry: retryUnlessClientError,
+  })
+}
+
+export function useTargetQuestions(id: string | undefined) {
+  const getToken = useApiToken()
+  return useQuery({
+    queryKey: analysisKeys.questions(id ?? ''),
+    queryFn: ({ signal }) => listTargetQuestions(id!, getToken, signal),
+    enabled: Boolean(id),
+    retry: retryUnlessClientError,
+  })
+}
+
+export function useAskTargetQuestion(targetId: string | undefined) {
+  const getToken = useApiToken()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (question: string) => askTargetQuestion(targetId!, question, getToken),
+    onSuccess: (entry) => {
+      if (!targetId || entry.analysis_target_id !== targetId) return
+      queryClient.invalidateQueries({ queryKey: analysisKeys.questions(targetId) })
+    },
   })
 }
 

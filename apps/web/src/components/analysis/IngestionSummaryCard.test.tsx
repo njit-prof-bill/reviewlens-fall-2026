@@ -13,6 +13,7 @@ function run(status: IngestionStatus, overrides: Partial<IngestionRun> = {}): In
     source_kind: 'url_fetch',
     reviews_ingested: 18,
     reviews_rejected: 0,
+    rejection_reasons: null,
     error_code: null,
     error_message: null,
     started_at: '2026-09-01T00:00:00Z',
@@ -60,13 +61,24 @@ describe('IngestionSummaryCard', () => {
   it('explains a partial result with both counts', () => {
     renderWithProviders(
       <IngestionSummaryCard
-        summary={summary(run('partial', { reviews_ingested: 15, reviews_rejected: 3 }))}
+        summary={summary(
+          run('partial', {
+            reviews_ingested: 15,
+            reviews_rejected: 3,
+            rejection_reasons: {
+              missing_review_text: 1,
+              missing_or_invalid_rating: 2,
+            },
+          }),
+        )}
         isLoading={false}
       />,
     )
 
     expect(screen.getByText('Partial')).toBeInTheDocument()
-    expect(screen.getByText(/15 collected, 3 skipped/)).toBeInTheDocument()
+    expect(screen.getByText(/15 collected and 3 skipped/)).toBeInTheDocument()
+    expect(screen.getByText(/1 missing review text/)).toBeInTheDocument()
+    expect(screen.getByText(/2 missing or invalid rating/)).toBeInTheDocument()
   })
 
   it('shows the user-safe failure message and no technical detail', () => {

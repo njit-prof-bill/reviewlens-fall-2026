@@ -272,3 +272,15 @@ Validation:
 - Focused API endpoint tests: 20 passed.
 - API Docker image build: pass.
 - ECS migration Terraform plan: 18 to add, 2 to change, 0 to destroy. The prior interrupted RDS creation left a stale taint; it was cleared after AWS reported the instance available, preventing a destructive replacement plan.
+
+UPDATE: September 5, 2026 - Sprint 2 OpenAI Runtime Configuration
+
+Implemented:
+- Added an OpenAI API key placeholder to the AWS bootstrap script and exposed its ARN as an optional provision workflow input.
+- Injected OPENAI_API_KEY into ECS and legacy App Runner API runtimes only.
+- Kept the key out of Vite variables and the ECS migration container.
+- Added LLM_PROVIDER and OPENAI_MODEL as nonsecret runtime configuration.
+
+Validation:
+- Terraform fmt and validate: pass.
+- Bootstrap script shell syntax: pass.

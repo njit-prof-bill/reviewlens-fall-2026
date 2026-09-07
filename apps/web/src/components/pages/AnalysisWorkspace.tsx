@@ -8,8 +8,8 @@ import { ImportReviewsDialog } from '@/components/analysis/ImportReviewsDialog'
 import { IngestionSummaryCard } from '@/components/analysis/IngestionSummaryCard'
 import { NotebookStep } from '@/components/analysis/NotebookStep'
 import { ReviewPreviewTable } from '@/components/analysis/ReviewPreviewTable'
+import { ReviewQANotebook } from '@/components/analysis/ReviewQANotebook'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   analysisKeys,
@@ -84,6 +84,12 @@ export function AnalysisWorkspace() {
   }
 
   const showFallbackProminently = summary.data?.latest_run?.status === 'failed'
+  const latestStatus = summary.data?.latest_run?.status
+  const qaEnabled =
+    Boolean(summary.data?.reviews_collected) &&
+    latestStatus !== 'pending' &&
+    latestStatus !== 'processing' &&
+    latestStatus !== 'failed'
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -149,13 +155,13 @@ export function AnalysisWorkspace() {
           />
         </NotebookStep>
 
-        <Card className="border-dashed bg-transparent shadow-none">
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Asking questions about these reviews arrives in a later release.
-            </p>
-          </CardContent>
-        </Card>
+        <NotebookStep step={3} title="Ask the Reviews">
+          <ReviewQANotebook
+            targetId={target.data.id}
+            targetName={target.data.name}
+            enabled={qaEnabled}
+          />
+        </NotebookStep>
       </div>
 
       <aside>

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Uuid
 
@@ -29,6 +29,9 @@ class IngestionRun(Base):
     source_kind: Mapped[str] = mapped_column(String(20), nullable=False)
     reviews_ingested: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     reviews_rejected: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rejection_reasons: Mapped[dict[str, int] | None] = mapped_column(
+        JSON, nullable=True
+    )
     error_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(

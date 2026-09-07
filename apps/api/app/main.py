@@ -7,8 +7,12 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
-from app.errors import AppValidationError, ResourceNotFoundError
-from app.routers import analysis_targets_router, ingestion_router
+from app.errors import (
+    AppValidationError,
+    ResourceNotFoundError,
+    ServiceUnavailableError,
+)
+from app.routers import analysis_targets_router, ingestion_router, qa_router
 from app.routes import canonical_router
 from app.routes import router as v1_router
 from app.schemas import ApiError, ApiErrorDetail, ApiErrorResponse
@@ -33,7 +37,7 @@ app.include_router(v1_router)
 app.include_router(canonical_router)
 
 # Resource routers are served under both prefixes so clients may use either.
-for resource_router in (analysis_targets_router, ingestion_router):
+for resource_router in (analysis_targets_router, ingestion_router, qa_router):
     app.include_router(resource_router, prefix="/api/v1")
     app.include_router(resource_router, prefix="/api")
 
@@ -96,6 +100,17 @@ async def resource_not_found_handler(
     _: Request, exc: ResourceNotFoundError
 ) -> JSONResponse:
     return error_response(status_code=404, code="not_found", message=exc.message)
+
+
+@app.exception_handler(ServiceUnavailableError)
+async def service_unavailable_handler(
+    _: Request, exc: ServiceUnavailableError
+) -> JSONResponse:
+    return error_response(
+        status_code=503,
+        code="service_unavailable",
+        message=exc.message,
+    )
 
 
 @app.exception_handler(Exception)
