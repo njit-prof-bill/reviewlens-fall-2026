@@ -37,5 +37,25 @@ After deployment:
 CI does not call OpenAI. It uses the deterministic provider harness and enforces
 80% changed-line coverage from API and web Cobertura reports.
 
+## Sprint 3 Release Validation
+
+The AWS `dev` environment is the capstone production-equivalent environment.
+Successful CI on protected `main` triggers the normal release. The ECS path runs
+`alembic upgrade head` inside the VPC before deploying the API, then verifies
+frontend availability, health, database readiness, CORS, and the authenticated
+smoke suite. Any failed migration, rollout, or verification step fails the
+release workflow.
+
+Required protected configuration:
+
+- AWS Secrets Manager ARNs for `OPENAI_API_KEY` and `REVIEW_PROVIDER_API_KEY`.
+- GitHub smoke-test account secrets described in
+  [smoke-test-runbook.md](smoke-test-runbook.md).
+- GitHub repository variables for the Terraform state and environment values.
+
+See [0008-sprint-3-release-and-verification.md](../decisions/0008-sprint-3-release-and-verification.md)
+for the release design and [security-findings.md](security-findings.md) for the
+required scanning/finding-review process.
+
 Applications created from ReviewLens
 may define their own production environment model.

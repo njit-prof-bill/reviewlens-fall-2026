@@ -19,6 +19,15 @@ variable "openai_api_key_arn" {
   default   = ""
   sensitive = true
 }
+variable "review_provider_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+variable "review_provider" {
+  type    = string
+  default = "serpapi"
+}
 variable "llm_provider" {
   type    = string
   default = "openai"
@@ -26,6 +35,10 @@ variable "llm_provider" {
 variable "openai_model" {
   type    = string
   default = "gpt-4.1-mini"
+}
+variable "app_env" {
+  type    = string
+  default = "production"
 }
 variable "clerk_jwks_url_param_arn" { type = string }
 variable "cors_origins_param_arn" { type = string }
@@ -61,6 +74,9 @@ locals {
     local.container_secrets,
     var.openai_api_key_arn != "" ? [
       { name = "OPENAI_API_KEY", valueFrom = var.openai_api_key_arn },
+    ] : [],
+    var.review_provider_api_key_arn != "" ? [
+      { name = "REVIEW_PROVIDER_API_KEY", valueFrom = var.review_provider_api_key_arn },
     ] : [],
   )
 }
@@ -189,6 +205,7 @@ resource "aws_iam_role_policy" "execution_configuration" {
         var.clerk_issuer_param_arn,
         var.clerk_audience_param_arn,
         var.openai_api_key_arn,
+        var.review_provider_api_key_arn,
       ])
     }]
   })
@@ -214,8 +231,10 @@ resource "aws_ecs_task_definition" "api" {
     portMappings = [{ containerPort = 8000, protocol = "tcp" }]
     secrets      = local.api_runtime_secrets
     environment = [
+      { name = "APP_ENV", value = var.app_env },
       { name = "LLM_PROVIDER", value = var.llm_provider },
       { name = "OPENAI_MODEL", value = var.openai_model },
+      { name = "REVIEW_PROVIDER", value = var.review_provider },
     ]
     logConfiguration = {
       logDriver = "awslogs"

@@ -55,6 +55,17 @@ variable "openai_api_key_arn" {
   sensitive = true
 }
 
+variable "review_provider_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "review_provider" {
+  type    = string
+  default = "serpapi"
+}
+
 variable "llm_provider" {
   type    = string
   default = "openai"
@@ -63,6 +74,11 @@ variable "llm_provider" {
 variable "openai_model" {
   type    = string
   default = "gpt-4.1-mini"
+}
+
+variable "app_env" {
+  type    = string
+  default = "production"
 }
 
 variable "clerk_jwks_url_param_arn" {
@@ -166,7 +182,8 @@ resource "aws_iam_role_policy" "secrets_manager" {
         Resource = compact([
           var.clerk_secret_key_arn,
           var.database_url_arn,
-          var.openai_api_key_arn
+          var.openai_api_key_arn,
+          var.review_provider_api_key_arn
         ])
       }
     ]
@@ -226,8 +243,10 @@ resource "aws_apprunner_service" "main" {
         port = "8000"
 
         runtime_environment_variables = {
-          "LLM_PROVIDER" = var.llm_provider
-          "OPENAI_MODEL" = var.openai_model
+          "APP_ENV"         = var.app_env
+          "LLM_PROVIDER"    = var.llm_provider
+          "OPENAI_MODEL"    = var.openai_model
+          "REVIEW_PROVIDER" = var.review_provider
         }
 
         runtime_environment_secrets = merge(
@@ -245,6 +264,9 @@ resource "aws_apprunner_service" "main" {
           } : {},
           var.openai_api_key_arn != "" ? {
             "OPENAI_API_KEY" = var.openai_api_key_arn
+          } : {},
+          var.review_provider_api_key_arn != "" ? {
+            "REVIEW_PROVIDER_API_KEY" = var.review_provider_api_key_arn
           } : {}
         )
       }
