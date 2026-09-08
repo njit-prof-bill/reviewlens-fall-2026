@@ -142,7 +142,7 @@ jobs:
           docker run --rm
           -v "${{ github.workspace }}:/repo"
           zricethezav/gitleaks:v8.18.4
-          detect --source=/repo --no-banner --redact
+          detect --source=/repo --config=/repo/.gitleaks.toml --no-banner --redact
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
