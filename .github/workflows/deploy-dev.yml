@@ -67,6 +67,10 @@ on:
         options:
           - ecs
           - app_runner
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -78,26 +82,46 @@ concurrency:
 
 env:
   TF_IN_AUTOMATION: "true"
-  APP_SLUG: ${{ inputs.app_slug }}
-  API_NAME: ${{ inputs.api_name }}
-  APP_DISPLAY_NAME: ${{ inputs.app_display_name }}
-  APP_DESCRIPTION: ${{ inputs.app_description }}
-  AWS_REGION: ${{ inputs.aws_region }}
-  TF_STATE_BUCKET: ${{ inputs.tf_state_bucket }}
-  TF_STATE_KEY: ${{ inputs.tf_state_key }}
-  TF_LOCK_TABLE_NAME: ${{ inputs.tf_lock_table_name }}
-  ENVIRONMENT_NAME: ${{ inputs.environment_name }}
-  FORCE_BACKEND_REBUILD: ${{ inputs.force_backend_rebuild }}
-  BACKEND_PLATFORM: ${{ inputs.backend_platform }}
+  APP_SLUG: ${{ inputs.app_slug || vars.APP_SLUG || 'reviewlens' }}
+  API_NAME: ${{ inputs.api_name || vars.API_NAME || 'reviewlens-api' }}
+  APP_DISPLAY_NAME: ${{ inputs.app_display_name || vars.APP_DISPLAY_NAME || 'ReviewLens' }}
+  APP_DESCRIPTION: ${{ inputs.app_description || vars.APP_DESCRIPTION || 'ReviewLens SaaS template' }}
+  AWS_REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
+  TF_STATE_BUCKET: ${{ inputs.tf_state_bucket || vars.TF_STATE_BUCKET }}
+  TF_STATE_KEY: ${{ inputs.tf_state_key || vars.TF_STATE_KEY || 'dev/terraform.tfstate' }}
+  TF_LOCK_TABLE_NAME: ${{ inputs.tf_lock_table_name || vars.TF_LOCK_TABLE_NAME || 'reviewlens-tf-lock' }}
+  ENVIRONMENT_NAME: ${{ inputs.environment_name || vars.ENVIRONMENT_NAME || 'dev' }}
+  FORCE_BACKEND_REBUILD: ${{ inputs.force_backend_rebuild || 'false' }}
+  BACKEND_PLATFORM: ${{ inputs.backend_platform || vars.BACKEND_PLATFORM || 'ecs' }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify manually selected commit passed CI
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          result=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${sha}/check-runs" \
+            --jq '.check_runs[] | select(.name == "release-gate") | .conclusion' \
+            | tail -1)
+          if [[ "$result" != "success" ]]; then
+            echo "Commit ${sha} has not passed the required release-gate check." >&2
+            exit 1
+          fi
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
