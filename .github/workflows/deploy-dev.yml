@@ -7,28 +7,27 @@ on:
       aws_region:
         description: AWS deployment region
         required: true
-        default: ${{ vars.AWS_REGION }}
+        default: ""
         type: string
       tf_state_bucket:
         description: Terraform state bucket name
         required: true
-        default: ${{ vars.TF_STATE_BUCKET }}
+        default: ""
         type: string
       tf_state_key:
         description: Terraform state object key
         required: true
-        default: ${{ vars.TF_STATE_KEY }}
+        default: ""
         type: string
       environment_name:
         description: Terraform environment name
         required: true
-        default: "${{ vars.ENVIRONMENT_NAME }}"
+        default: ""
         type: string
       app_slug:
         description: Application slug used for resource naming
         required: true
-        default: "${{ vars.APP_SLUG }}"
-
+        default: ""
         type: string
       api_name:
         description: API name expected in version smoke check
@@ -50,7 +49,7 @@ on:
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: ${{ vars.TF_LOCK_TABLE_NAME }}
+        default: ""
         type: string
       force_backend_rebuild:
         description: Force backend image rebuild even if current commit SHA tag already exists in ECR
@@ -63,7 +62,7 @@ on:
       backend_platform:
         description: Backend platform to deploy and use for the frontend
         required: true
-        default: "${{ vars.BACKEND_PLATFORM }}"
+        default: "ecs"
         type: choice
         options:
           - ecs
