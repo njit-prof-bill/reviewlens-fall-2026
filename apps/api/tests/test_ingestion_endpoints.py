@@ -173,6 +173,53 @@ class TestUrlIngestion:
             "missing_or_invalid_rating": 1,
         }
 
+    def test_reingestion_merges_new_reviews_and_skips_source_duplicates(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        initial = [
+            RawReview(review_text="First review", rating=5, source_review_id="first"),
+            RawReview(review_text="Second review", rating=4, source_review_id="second"),
+        ]
+        _use_provider(monkeypatch, StubProvider(initial))
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        refreshed = initial + [
+            RawReview(review_text="Third review", rating=3, source_review_id="third")
+        ]
+        _use_provider(monkeypatch, StubProvider(refreshed))
+        started = client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+        run = client.get(f"/api/v1/ingestion-runs/{started.json()['id']}").json()
+        reviews = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/reviews"
+        ).json()
+
+        assert run["status"] == "succeeded"
+        assert run["reviews_ingested"] == 1
+        assert run["reviews_duplicate"] == 2
+        assert reviews["total"] == 3
+
+    def test_reingestion_deduplicates_records_without_source_ids(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        provider = StubProvider(
+            [RawReview(review_text="Quiet room", rating=5, reviewer_name="Pat")]
+        )
+        _use_provider(monkeypatch, provider)
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+        started = client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+        run = client.get(f"/api/v1/ingestion-runs/{started.json()['id']}").json()
+
+        assert run["reviews_ingested"] == 0
+        assert run["reviews_duplicate"] == 1
+        assert (
+            client.get(f"/api/v1/analysis-targets/{target_a['id']}/reviews").json()[
+                "total"
+            ]
+            == 1
+        )
+
 
 class TestIngestionFailure:
     def test_a_provider_failure_is_recorded_without_fabricating_reviews(

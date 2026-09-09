@@ -85,6 +85,7 @@ class Settings(BaseModel):
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 
+    app_env: str = "development"
     app_name: str = DEFAULT_API_NAME
     app_version: str = DEFAULT_API_VERSION
     database_url: str = (
@@ -119,6 +120,7 @@ class Settings(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
 
+        self.app_env = os.getenv("APP_ENV", self.app_env)
         cors_env = os.getenv("CORS_ORIGINS")
         if cors_env:
             parsed_origins, wildcard_regexes = _parse_cors_origins(cors_env)
@@ -163,6 +165,22 @@ class Settings(BaseModel):
         self.qa_max_context_characters = int(
             os.getenv("QA_MAX_CONTEXT_CHARACTERS", self.qa_max_context_characters)
         )
+
+    def validate_runtime_configuration(self) -> None:
+        """Fail fast for production-equivalent API containers without leaking secrets."""
+        if self.app_env != "production":
+            return
+        required = {
+            "CLERK_JWKS_URL": self.clerk_jwks_url,
+            "CLERK_SECRET_KEY": self.clerk_secret_key,
+            "REVIEW_PROVIDER_API_KEY": self.review_provider_api_key,
+            "OPENAI_API_KEY": self.openai_api_key,
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
+            raise RuntimeError(
+                "Required production configuration is missing: " + ", ".join(missing)
+            )
 
 
 @lru_cache

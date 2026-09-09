@@ -1,5 +1,6 @@
 import pytest
 from app.auth import get_current_auth_identity
+from app.db.session import get_db_session
 from app.main import app
 from fastapi.testclient import TestClient
 
@@ -30,18 +31,46 @@ class TestHealthEndpoint:
 class TestReadyEndpoint:
     """Tests for the /api/v1/ready endpoint."""
 
-    def test_ready_returns_ready(self, client):
+    def test_ready_returns_ready(self, client, db_session):
         """Readiness endpoint should return status ready."""
-        response = client.get("/api/v1/ready")
+        app.dependency_overrides[get_db_session] = lambda: db_session
+        try:
+            response = client.get("/api/v1/ready")
+        finally:
+            app.dependency_overrides.clear()
         assert response.status_code == 200
         assert response.json() == {"status": "ready"}
 
-    def test_ready_response_schema(self, client):
+    def test_ready_response_schema(self, client, db_session):
         """Ready response should match HealthResponse schema."""
-        response = client.get("/api/v1/ready")
+        app.dependency_overrides[get_db_session] = lambda: db_session
+        try:
+            response = client.get("/api/v1/ready")
+        finally:
+            app.dependency_overrides.clear()
         data = response.json()
         assert "status" in data
         assert isinstance(data["status"], str)
+
+    def test_ready_returns_safe_error_when_database_is_unavailable(self, client):
+        class FailingSession:
+            def execute(self, _statement):
+                raise ConnectionError("database connection refused")
+
+        app.dependency_overrides[get_db_session] = lambda: FailingSession()
+        try:
+            response = client.get("/api/v1/ready")
+        finally:
+            app.dependency_overrides.clear()
+
+        assert response.status_code == 503
+        assert response.json() == {
+            "error": {
+                "code": "service_unavailable",
+                "message": "The service is not ready.",
+                "details": [],
+            }
+        }
 
 
 class TestVersionEndpoint:

@@ -9,7 +9,9 @@ import uuid
 from collections import Counter
 from collections.abc import Callable
 from datetime import UTC, datetime
+from hashlib import sha256
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import IngestionRun, Review
@@ -26,6 +28,27 @@ from app.services.ingestion.normalizer import normalize_all
 logger = logging.getLogger(__name__)
 
 SessionFactory = Callable[[], Session]
+
+
+def review_dedupe_key(
+    review_text: str,
+    rating: float,
+    reviewer_name: str | None,
+    reviewed_at: datetime | None,
+    source_review_id: str | None,
+) -> str:
+    """Return a stable source ID or fallback content fingerprint."""
+    if source_review_id:
+        return sha256(f"source:{source_review_id}".encode()).hexdigest()
+    normalized = "\x1f".join(
+        (
+            review_text.strip().casefold(),
+            str(rating),
+            (reviewer_name or "").strip().casefold(),
+            reviewed_at.isoformat() if reviewed_at else "",
+        )
+    )
+    return sha256(normalized.encode()).hexdigest()
 
 
 def start_ingestion_run(
@@ -49,12 +72,14 @@ def _finish(
     status: IngestionStatus,
     ingested: int = 0,
     rejected: int = 0,
+    duplicates: int = 0,
     rejection_reasons: dict[str, int] | None = None,
     error_code: IngestionErrorCode | None = None,
 ) -> None:
     run.status = status.value
     run.reviews_ingested = ingested
     run.reviews_rejected = rejected
+    run.reviews_duplicate = duplicates
     run.rejection_reasons = rejection_reasons or None
     run.error_code = error_code.value if error_code else None
     run.error_message = INGESTION_ERROR_MESSAGES[error_code] if error_code else None
@@ -119,20 +144,51 @@ def execute_ingestion_run(
             target.name = result.entity_name[:200]
             session.add(target)
 
-        session.add_all(
-            Review(
-                analysis_target_id=target.id,
-                ingestion_run_id=run.id,
-                review_text=item.review_text,
-                rating=item.rating,
-                reviewer_name=item.reviewer_name,
-                reviewed_at=item.reviewed_at,
-                source_review_id=item.source_review_id,
-                review_url=item.review_url,
-                source_metadata=item.source_metadata,
+        existing = list(
+            session.scalars(
+                select(Review).where(Review.analysis_target_id == target.id)
             )
-            for item in accepted
         )
+        existing_keys = {
+            review.dedupe_key
+            or review_dedupe_key(
+                review.review_text,
+                review.rating,
+                review.reviewer_name,
+                review.reviewed_at,
+                review.source_review_id,
+            )
+            for review in existing
+        }
+        new_reviews: list[Review] = []
+        duplicates = 0
+        for item in accepted:
+            dedupe_key = review_dedupe_key(
+                item.review_text,
+                item.rating,
+                item.reviewer_name,
+                item.reviewed_at,
+                item.source_review_id,
+            )
+            if dedupe_key in existing_keys:
+                duplicates += 1
+                continue
+            existing_keys.add(dedupe_key)
+            new_reviews.append(
+                Review(
+                    analysis_target_id=target.id,
+                    ingestion_run_id=run.id,
+                    review_text=item.review_text,
+                    rating=item.rating,
+                    reviewer_name=item.reviewer_name,
+                    reviewed_at=item.reviewed_at,
+                    source_review_id=item.source_review_id,
+                    dedupe_key=dedupe_key,
+                    review_url=item.review_url,
+                    source_metadata=item.source_metadata,
+                )
+            )
+        session.add_all(new_reviews)
         session.commit()
 
         status = IngestionStatus.PARTIAL if rejected else IngestionStatus.SUCCEEDED
@@ -140,8 +196,9 @@ def execute_ingestion_run(
             session,
             run,
             status,
-            ingested=len(accepted),
+            ingested=len(new_reviews),
             rejected=len(rejected),
+            duplicates=duplicates,
             rejection_reasons=dict(Counter(item.reason for item in rejected)),
         )
     finally:

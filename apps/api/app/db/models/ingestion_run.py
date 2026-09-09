@@ -29,6 +29,7 @@ class IngestionRun(Base):
     source_kind: Mapped[str] = mapped_column(String(20), nullable=False)
     reviews_ingested: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     reviews_rejected: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    reviews_duplicate: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rejection_reasons: Mapped[dict[str, int] | None] = mapped_column(
         JSON, nullable=True
     )
