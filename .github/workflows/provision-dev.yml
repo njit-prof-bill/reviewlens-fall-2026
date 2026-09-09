@@ -7,28 +7,27 @@ on:
       aws_region:
         description: AWS deployment region
         required: true
-        default: ${{ vars.AWS_REGION }}
+        default: ""
         type: string
       tf_state_bucket:
         description: Terraform state bucket name
         required: true
-        default: ${{ vars.TF_STATE_BUCKET }}
+        default: ""
         type: string
       tf_state_key:
         description: Terraform state object key
         required: true
-        default: ${{ vars.TF_STATE_KEY }}
+        default: ""
         type: string
       environment_name:
         description: Terraform environment name
         required: true
-        default: "${{ vars.ENVIRONMENT_NAME }}"
+        default: ""
         type: string
       app_slug:
         description: Application slug used for resource naming
         required: true
-        default: "${{ vars.APP_SLUG }}"
-
+        default: ""
         type: string
       database_name:
         description: Database name
@@ -39,7 +38,7 @@ on:
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: ${{ vars.TF_LOCK_TABLE_NAME }}
+        default: ""
         type: string
       clerk_jwks_url:
         description: Clerk JWKS URL
@@ -70,12 +69,12 @@ on:
       openai_api_key_arn:
         description: Optional Secrets Manager ARN for the OpenAI API key
         required: false
-        default: "${{ vars.OPENAI_API_KEY_ARN }}"
+        default: ""
         type: string
       review_provider_api_key_arn:
         description: Optional Secrets Manager ARN for the review provider API key
         required: false
-        default: "${{ vars.REVIEW_PROVIDER_API_KEY_ARN }}"
+        default: ""
         type: string
       openai_model:
         description: OpenAI model used for review Q&A
@@ -90,7 +89,7 @@ on:
       backend_platform:
         description: Backend endpoint used for frontend builds
         required: true
-        default: "${{ vars.BACKEND_PLATFORM }}"
+        default: "ecs"
         type: choice
         options:
           - ecs
