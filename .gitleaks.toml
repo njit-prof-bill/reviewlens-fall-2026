@@ -1,9 +1,0 @@
-title = "ReviewLens Gitleaks configuration"
-
-# Commit 91b2336 predates secret scanning and contains only a Clerk publishable
-# key and an AWS Secrets Manager ARN in a mistakenly tracked local tfvars file.
-# The file is removed from tracking in the accompanying change. Do not add new
-# commits or broad path/regex exceptions here.
-[[allowlists]]
-description = "Reviewed historical non-secret Terraform configuration"
-commits = ["91b2336155eea8aa534c9ad02ff6f382a099c511"]

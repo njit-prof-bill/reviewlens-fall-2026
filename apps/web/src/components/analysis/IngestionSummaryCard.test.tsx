@@ -13,7 +13,6 @@ function run(status: IngestionStatus, overrides: Partial<IngestionRun> = {}): In
     source_kind: 'url_fetch',
     reviews_ingested: 18,
     reviews_rejected: 0,
-    reviews_duplicate: 0,
     rejection_reasons: null,
     error_code: null,
     error_message: null,
@@ -80,18 +79,6 @@ describe('IngestionSummaryCard', () => {
     expect(screen.getByText(/15 collected and 3 skipped/)).toBeInTheDocument()
     expect(screen.getByText(/1 missing review text/)).toBeInTheDocument()
     expect(screen.getByText(/2 missing or invalid rating/)).toBeInTheDocument()
-  })
-
-  it('reports duplicates skipped during a merged re-ingestion', () => {
-    renderWithProviders(
-      <IngestionSummaryCard
-        summary={summary(run('succeeded', { reviews_ingested: 2, reviews_duplicate: 4 }))}
-        isLoading={false}
-      />,
-    )
-
-    expect(screen.getByText('Latest ingestion merged safely')).toBeInTheDocument()
-    expect(screen.getByText(/2 new reviews added; 4 already collected reviews skipped/)).toBeInTheDocument()
   })
 
   it('shows the user-safe failure message and no technical detail', () => {

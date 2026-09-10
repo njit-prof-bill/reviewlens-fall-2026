@@ -23,7 +23,6 @@ logging.basicConfig(
 )
 
 app = FastAPI(title=settings.app_name, version=settings.app_version)
-settings.validate_runtime_configuration()
 
 app.add_middleware(
     CORSMiddleware,

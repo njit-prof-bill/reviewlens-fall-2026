@@ -68,19 +68,6 @@ variable "openai_api_key_arn" {
   sensitive   = true
 }
 
-variable "review_provider_api_key_arn" {
-  description = "ARN of Secrets Manager secret containing REVIEW_PROVIDER_API_KEY"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "review_provider" {
-  description = "Review collection provider"
-  type        = string
-  default     = "serpapi"
-}
-
 variable "llm_provider" {
   description = "Review Q&A provider adapter"
   type        = string
@@ -91,12 +78,6 @@ variable "openai_model" {
   description = "OpenAI model used for review Q&A"
   type        = string
   default     = "gpt-4.1-mini"
-}
-
-variable "app_env" {
-  description = "Application runtime environment"
-  type        = string
-  default     = "production"
 }
 
 # Database

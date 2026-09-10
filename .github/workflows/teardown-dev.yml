@@ -15,32 +15,32 @@ name: teardown-dev
       aws_region:
         description: AWS deployment region
         required: true
-        default: ""
+        default: us-east-2
         type: string
       tf_state_bucket:
         description: Terraform state bucket name
         required: true
-        default: ""
         type: string
       tf_state_key:
         description: Terraform state object key
         required: true
-        default: ""
+        default: dev/terraform.tfstate
         type: string
       environment_name:
         description: Terraform environment name
         required: true
-        default: ""
+        default: dev
         type: string
       app_slug:
         description: Application slug used for resource naming
         required: true
-        default: ""
+        default: reviewlens
+
         type: string
       tf_lock_table_name:
         description: Terraform state lock DynamoDB table
         required: true
-        default: ""
+        default: reviewlens-tf-lock
         type: string
       confirm_destroy:
         description: Required only for destroy mode. Enter DESTROY
@@ -66,12 +66,12 @@ concurrency:
 
 env:
   TF_IN_AUTOMATION: "true"
-  APP_SLUG: ${{ inputs.app_slug || vars.APP_SLUG }}
-  AWS_REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
-  TF_STATE_BUCKET: ${{ inputs.tf_state_bucket || vars.TF_STATE_BUCKET }}
-  TF_STATE_KEY: ${{ inputs.tf_state_key || vars.TF_STATE_KEY }}
-  TF_LOCK_TABLE_NAME: ${{ inputs.tf_lock_table_name || vars.TF_LOCK_TABLE_NAME }}
-  ENVIRONMENT_NAME: ${{ inputs.environment_name || vars.ENVIRONMENT_NAME }}
+  APP_SLUG: ${{ inputs.app_slug }}
+  AWS_REGION: ${{ inputs.aws_region }}
+  TF_STATE_BUCKET: ${{ inputs.tf_state_bucket }}
+  TF_STATE_KEY: ${{ inputs.tf_state_key }}
+  TF_LOCK_TABLE_NAME: ${{ inputs.tf_lock_table_name }}
+  ENVIRONMENT_NAME: ${{ inputs.environment_name }}
   MODE: ${{ inputs.mode }}
   CONFIRM_DESTROY: ${{ inputs.confirm_destroy }}
   KEEP_ECR_REPOSITORY: ${{ inputs.keep_ecr_repository }}

@@ -42,7 +42,6 @@ coverage.xml
 .terraform/
 *.tfstate
 *.tfstate.*
-*.tfvars
 .terraform.lock.hcl
 *.tfplan
 *.tfplan.*
