@@ -1,9 +1,7 @@
 from fastapi import APIRouter
-from sqlalchemy import text
 
 from app.core.config import settings
-from app.dependencies import AuthIdentity, CurrentUser, DbSession
-from app.errors import ServiceUnavailableError
+from app.dependencies import AuthIdentity, CurrentUser
 from app.schemas import (
     AppUserProfile,
     AuthIdentityResponse,
@@ -22,12 +20,8 @@ async def health() -> HealthResponse:
 
 
 @router.get("/ready", response_model=HealthResponse)
-async def ready(db: DbSession) -> HealthResponse:
-    """Readiness check endpoint that verifies database connectivity."""
-    try:
-        db.execute(text("SELECT 1"))
-    except Exception as exc:
-        raise ServiceUnavailableError("The service is not ready.") from exc
+async def ready() -> HealthResponse:
+    """Readiness check endpoint."""
     return HealthResponse(status="ready")
 
 

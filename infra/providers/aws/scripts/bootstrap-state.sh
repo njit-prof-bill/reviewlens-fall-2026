@@ -10,7 +10,6 @@
 #   - AWS_ACCOUNT_ID (auto-detected if AWS CLI configured)
 #   - CLERK_SECRET_KEY (required)
 #   - OPENAI_API_KEY (required for review Q&A)
-#   - REVIEW_PROVIDER_API_KEY (required for URL ingestion)
 
 set -e
 
@@ -72,13 +71,6 @@ read -sp "Enter OPENAI_API_KEY: " OPENAI_API_KEY
 echo ""
 if [ -z "$OPENAI_API_KEY" ]; then
   echo "Error: OPENAI_API_KEY required"
-  exit 1
-fi
-
-read -sp "Enter REVIEW_PROVIDER_API_KEY: " REVIEW_PROVIDER_API_KEY
-echo ""
-if [ -z "$REVIEW_PROVIDER_API_KEY" ]; then
-  echo "Error: REVIEW_PROVIDER_API_KEY required"
   exit 1
 fi
 
@@ -168,18 +160,6 @@ if ! aws secretsmanager create-secret \
     --secret-string "$OPENAI_API_KEY"
 fi
 
-# REVIEW_PROVIDER_API_KEY secret
-if ! aws secretsmanager create-secret \
-  --name "${SECRETS_PREFIX}-review-provider-api-key" \
-  --region "$AWS_REGION" \
-  --secret-string "$REVIEW_PROVIDER_API_KEY" \
-  2>/dev/null; then
-  aws secretsmanager update-secret \
-    --secret-id "${SECRETS_PREFIX}-review-provider-api-key" \
-    --region "$AWS_REGION" \
-    --secret-string "$REVIEW_PROVIDER_API_KEY"
-fi
-
 # CLERK_SECRET_KEY secret
 if ! aws secretsmanager create-secret \
   --name "${SECRETS_PREFIX}-clerk-secret-key" \
@@ -220,17 +200,10 @@ OPENAI_API_KEY_ARN=$(aws secretsmanager describe-secret \
   --query 'ARN' \
   --output text)
 
-REVIEW_PROVIDER_API_KEY_ARN=$(aws secretsmanager describe-secret \
-  --secret-id "${SECRETS_PREFIX}-review-provider-api-key" \
-  --region "$AWS_REGION" \
-  --query 'ARN' \
-  --output text)
-
 echo ""
 echo "DATABASE_URL_ARN: $DATABASE_URL_ARN"
 echo "CLERK_SECRET_KEY_ARN: $CLERK_SECRET_KEY_ARN"
 echo "OPENAI_API_KEY_ARN: $OPENAI_API_KEY_ARN"
-echo "REVIEW_PROVIDER_API_KEY_ARN: $REVIEW_PROVIDER_API_KEY_ARN"
 echo ""
 echo "3. Update terraform.tfvars with the above ARNs"
 echo ""

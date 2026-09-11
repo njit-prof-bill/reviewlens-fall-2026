@@ -22,7 +22,6 @@ export interface IngestionRun {
   source_kind: 'url_fetch' | 'file_import'
   reviews_ingested: number
   reviews_rejected: number
-  reviews_duplicate: number
   rejection_reasons: Record<string, number> | null
   error_code: string | null
   error_message: string | null

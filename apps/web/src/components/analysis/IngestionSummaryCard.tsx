@@ -122,17 +122,6 @@ export function IngestionSummaryCard({ summary, isLoading }: IngestionSummaryCar
             </AlertDescription>
           </Alert>
         ) : null}
-
-        {run && run.reviews_duplicate > 0 ? (
-          <Alert>
-            <CheckCircle2 className="size-4" />
-            <AlertTitle>Latest ingestion merged safely</AlertTitle>
-            <AlertDescription>
-              {run.reviews_ingested} new reviews added; {run.reviews_duplicate} already
-              collected reviews skipped.
-            </AlertDescription>
-          </Alert>
-        ) : null}
       </CardContent>
     </Card>
   )
