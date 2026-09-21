@@ -66,7 +66,7 @@ describe('AnalysisWorkspace', () => {
     expect(await screen.findByText('Ingestion Summary')).toBeInTheDocument()
     expect(await screen.findByText('Review Preview')).toBeInTheDocument()
     expect(await screen.findByText('Ask the Reviews')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /analyze reviews/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /refresh reviews/i })).toBeInTheDocument()
   })
 
   it('denies a target owned by another account without leaking anything', async () => {

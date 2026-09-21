@@ -4,6 +4,7 @@ from fastapi import APIRouter, Response, status
 
 from app.dependencies import CurrentUser, DbSession
 from app.schemas import (
+    AnalysisTargetCopy,
     AnalysisTargetCreate,
     AnalysisTargetListResponse,
     AnalysisTargetRename,
@@ -56,6 +57,21 @@ async def rename_analysis_target(
     db: DbSession,
 ) -> AnalysisTargetResponse:
     target = analysis_target_service.rename_target(db, user.id, target_id, payload.name)
+    return AnalysisTargetResponse.model_validate(target)
+
+
+@router.post(
+    "/{target_id}/copies",
+    response_model=AnalysisTargetResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def copy_analysis_target(
+    target_id: uuid.UUID,
+    payload: AnalysisTargetCopy,
+    user: CurrentUser,
+    db: DbSession,
+) -> AnalysisTargetResponse:
+    target = analysis_target_service.copy_target(db, user.id, target_id, payload.name)
     return AnalysisTargetResponse.model_validate(target)
 
 

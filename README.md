@@ -168,6 +168,25 @@ The workspace presents Q&A as notebook entries rather than a general-purpose
 chat. Answers are classified as grounded, insufficient evidence, or out of
 scope, and grounded answers include validated snapshots of supporting reviews.
 
+### Sprint 3 Saved Analyses, Refresh, and Export
+
+ReviewLens now supports the Sprint 3 completion workflow:
+
+- saved analyses can be renamed, copied with Save As, reopened, and deleted
+- Q&A history is persisted per analysis and can be cleared without deleting reviews
+- refresh/re-ingestion reconciles reviews by a deterministic review identity key
+- failed refresh attempts preserve the last known-good current dataset
+- complete current review datasets can be browsed and filtered by rating/date
+- current reviews export to CSV and saved analyses export to Markdown
+
+Save As creates a separate analysis identity and copies the current review dataset,
+but starts with empty Q&A history. Delete uses the documented cascade behavior:
+the analysis and associated reviews, ingestion runs, and Q&A entries are removed.
+
+Before a Sprint 3 demo, prepare User A and User B data as described in
+`docs/Sprint Demos/Sprint3Demo.md`, then validate locally and from the public
+CloudFront URL.
+
 ### Stop Local Dev Environment
 
 1. Stop frontend and backend with `Ctrl+C` in their terminals.

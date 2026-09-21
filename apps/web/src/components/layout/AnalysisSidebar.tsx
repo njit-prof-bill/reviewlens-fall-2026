@@ -1,9 +1,10 @@
-import { MoreHorizontal, PencilLine, Plus, Trash2 } from 'lucide-react'
+import { Copy, MoreHorizontal, PencilLine, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { DeleteAnalysisDialog } from '@/components/analysis/DeleteAnalysisDialog'
 import { RenameAnalysisDialog } from '@/components/analysis/RenameAnalysisDialog'
+import { SaveAsAnalysisDialog } from '@/components/analysis/SaveAsAnalysisDialog'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ export function AnalysisSidebar({
   const { data: targets, isPending, isError } = useAnalysisTargets()
 
   const [renaming, setRenaming] = useState<AnalysisTarget | null>(null)
+  const [copying, setCopying] = useState<AnalysisTarget | null>(null)
   const [pendingDelete, setPendingDelete] = useState<AnalysisTarget | null>(null)
 
   function handleDeleted(deletedId: string) {
@@ -128,6 +130,15 @@ export function AnalysisSidebar({
                       Rename
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault()
+                        setCopying(target)
+                      }}
+                    >
+                      <Copy className="size-4" />
+                      Save As
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onSelect={(event) => {
                         event.preventDefault()
@@ -146,6 +157,12 @@ export function AnalysisSidebar({
       </div>
 
       <RenameAnalysisDialog target={renaming} onClose={() => setRenaming(null)} />
+
+      <SaveAsAnalysisDialog
+        target={copying}
+        onClose={() => setCopying(null)}
+        onCopied={(target) => navigate(`/analysis/${target.id}`)}
+      />
 
       <DeleteAnalysisDialog
         target={pendingDelete}

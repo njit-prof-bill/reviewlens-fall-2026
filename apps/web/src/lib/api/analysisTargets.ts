@@ -1,10 +1,11 @@
-import { apiFetch } from '@/lib/api/client'
+import { apiDownload, apiFetch } from '@/lib/api/client'
 import type {
   AnalysisTarget,
   AnalysisTargetSummary,
   IngestionRun,
   QAEntry,
   QAEntryList,
+  ReviewFilters,
   ReviewList,
 } from '@/lib/api/types'
 
@@ -37,6 +38,14 @@ export function renameAnalysisTarget(id: string, name: string, getToken: TokenGe
   })
 }
 
+export function copyAnalysisTarget(id: string, name: string, getToken: TokenGetter) {
+  return apiFetch<AnalysisTarget>(`${BASE}/${id}/copies`, {
+    method: 'POST',
+    body: { name },
+    getToken,
+  })
+}
+
 export function deleteAnalysisTarget(id: string, getToken: TokenGetter) {
   return apiFetch<void>(`${BASE}/${id}`, { method: 'DELETE', getToken })
 }
@@ -47,7 +56,7 @@ export function getTargetSummary(id: string, getToken: TokenGetter, signal?: Abo
 
 export function listTargetReviews(
   id: string,
-  options: { limit: number; offset: number },
+  options: { limit: number; offset: number; filters?: ReviewFilters },
   getToken: TokenGetter,
   signal?: AbortSignal,
 ) {
@@ -55,6 +64,10 @@ export function listTargetReviews(
     limit: String(options.limit),
     offset: String(options.offset),
   })
+  if (options.filters?.minRating) query.set('min_rating', String(options.filters.minRating))
+  if (options.filters?.maxRating) query.set('max_rating', String(options.filters.maxRating))
+  if (options.filters?.reviewedAfter) query.set('reviewed_after', options.filters.reviewedAfter)
+  if (options.filters?.reviewedBefore) query.set('reviewed_before', options.filters.reviewedBefore)
   return apiFetch<ReviewList>(`${BASE}/${id}/reviews?${query}`, { getToken, signal })
 }
 
@@ -92,4 +105,16 @@ export function askTargetQuestion(id: string, question: string, getToken: TokenG
     body: { question },
     getToken,
   })
+}
+
+export function clearTargetQuestions(id: string, getToken: TokenGetter) {
+  return apiFetch<void>(`${BASE}/${id}/questions`, { method: 'DELETE', getToken })
+}
+
+export function exportTargetReviewsCsv(id: string, getToken: TokenGetter) {
+  return apiDownload(`${BASE}/${id}/exports/reviews.csv`, getToken)
+}
+
+export function exportTargetAnalysisMarkdown(id: string, getToken: TokenGetter) {
+  return apiDownload(`${BASE}/${id}/exports/analysis.md`, getToken)
 }

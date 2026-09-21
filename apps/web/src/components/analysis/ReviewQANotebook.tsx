@@ -1,4 +1,4 @@
-import { CircleAlert, MessageSquareText, Send, Star } from 'lucide-react'
+import { CircleAlert, MessageSquareText, Send, Star, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAskTargetQuestion, useTargetQuestions } from '@/hooks/useAnalysis'
+import { useAskTargetQuestion, useClearTargetQuestions, useTargetQuestions } from '@/hooks/useAnalysis'
 import { ApiError } from '@/lib/api/client'
 import type { QAEntry } from '@/lib/api/types'
 
@@ -83,6 +83,7 @@ interface ReviewQANotebookProps {
 export function ReviewQANotebook({ targetId, targetName, enabled }: ReviewQANotebookProps) {
   const history = useTargetQuestions(targetId)
   const askQuestion = useAskTargetQuestion(targetId)
+  const clearQuestions = useClearTargetQuestions(targetId)
   const [question, setQuestion] = useState('')
 
   async function submit(event: FormEvent) {
@@ -118,6 +119,21 @@ export function ReviewQANotebook({ targetId, targetName, enabled }: ReviewQANote
 
   return (
     <div className="space-y-5">
+      {history.data?.items.length ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={clearQuestions.isPending}
+            onClick={() => void clearQuestions.mutateAsync()}
+          >
+            <Trash2 className="size-4" />
+            {clearQuestions.isPending ? 'Clearing...' : 'Clear Q&A History'}
+          </Button>
+        </div>
+      ) : null}
+
       {history.isPending ? (
         <div className="space-y-3" aria-label="Loading question history">
           <Skeleton className="h-5 w-2/3" />

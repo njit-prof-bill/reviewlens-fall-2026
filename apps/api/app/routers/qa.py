@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from app.dependencies import CurrentUser, DbSession
 from app.schemas import QAEntryListResponse, QAEntryResponse, QuestionRequest
@@ -39,3 +39,16 @@ async def list_questions(
     return QAEntryListResponse(
         items=[QAEntryResponse.model_validate(entry) for entry in entries]
     )
+
+
+@router.delete(
+    "/analysis-targets/{target_id}/questions", status_code=status.HTTP_204_NO_CONTENT
+)
+async def clear_questions(
+    target_id: uuid.UUID,
+    user: CurrentUser,
+    db: DbSession,
+) -> Response:
+    target = analysis_target_service.get_owned_target(db, user.id, target_id)
+    qa_service.clear_entries(db, target.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,4 +1,5 @@
 from app.schemas.analysis_target import (
+    AnalysisTargetCopy,
     AnalysisTargetCreate,
     AnalysisTargetListResponse,
     AnalysisTargetRename,
@@ -31,6 +32,7 @@ from app.schemas.review import (
 )
 
 __all__ = [
+    "AnalysisTargetCopy",
     "AnalysisTargetCreate",
     "AnalysisTargetListResponse",
     "AnalysisTargetRename",

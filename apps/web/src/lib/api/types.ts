@@ -47,6 +47,13 @@ export interface ReviewList {
   offset: number
 }
 
+export interface ReviewFilters {
+  minRating?: number
+  maxRating?: number
+  reviewedAfter?: string
+  reviewedBefore?: string
+}
+
 export interface AnalysisTargetSummary {
   entity_name: string
   platform: string

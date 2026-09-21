@@ -2,6 +2,8 @@
 
 import uuid
 
+from app.db.models import QAEntry, Review
+
 VALID_URL = (
     "https://www.google.com/maps/place/Blue+Bottle+Coffee/"
     "@37.7823,-122.4074,17z/data=!4m6!3m5!1s0x8085808f0b0b0b0b:0x1234abcd"
@@ -194,6 +196,122 @@ class TestRenameAndDelete:
 
         assert client.delete(f"/api/v1/analysis-targets/{target_id}").status_code == 204
         assert client.get(f"/api/v1/analysis-targets/{target_id}").status_code == 404
+
+    def test_blank_rename_is_rejected(self, client_factory, user_a):
+        client = client_factory(user_a)
+        target_id = _create_target(client).json()["id"]
+
+        response = client.patch(
+            f"/api/v1/analysis-targets/{target_id}", json={"name": "   "}
+        )
+
+        assert response.status_code == 422
+
+
+class TestSaveAsAnalysisTarget:
+    def test_owner_can_save_as_a_separate_analysis(
+        self, client_factory, user_a, app_session
+    ):
+        client = client_factory(user_a)
+        original = _create_target(client).json()
+        original_id = uuid.UUID(original["id"])
+        app_session.add_all(
+            [
+                Review(
+                    analysis_target_id=original_id,
+                    review_identity_key="source:current-review",
+                    review_text="Current review copied to the saved analysis.",
+                    rating=5,
+                    source_review_id="current-review",
+                    is_current=True,
+                ),
+                Review(
+                    analysis_target_id=original_id,
+                    review_identity_key="source:stale-review",
+                    review_text="Stale review must not be copied.",
+                    rating=1,
+                    source_review_id="stale-review",
+                    is_current=False,
+                ),
+                QAEntry(
+                    analysis_target_id=original_id,
+                    question="What is copied?",
+                    answer="The current dataset only.",
+                    result_kind="grounded",
+                    provider="fake",
+                    model="fake-v1",
+                    context_review_count=1,
+                ),
+            ]
+        )
+        app_session.commit()
+
+        response = client.post(
+            f"/api/v1/analysis-targets/{original['id']}/copies",
+            json={"name": "Blue Bottle Copy"},
+        )
+
+        assert response.status_code == 201
+        copied = response.json()
+        assert copied["id"] != original["id"]
+        assert copied["name"] == "Blue Bottle Copy"
+        assert copied["source_url"] == original["source_url"]
+
+        copied_reviews = client.get(
+            f"/api/v1/analysis-targets/{copied['id']}/reviews"
+        ).json()
+        copied_questions = client.get(
+            f"/api/v1/analysis-targets/{copied['id']}/questions"
+        ).json()
+        assert copied_reviews["total"] == 1
+        assert copied_reviews["items"][0]["review_text"] == (
+            "Current review copied to the saved analysis."
+        )
+        assert copied_questions["items"] == []
+
+    def test_copy_can_be_renamed_without_renaming_original(
+        self, client_factory, user_a
+    ):
+        client = client_factory(user_a)
+        original = _create_target(client).json()
+        copied = client.post(
+            f"/api/v1/analysis-targets/{original['id']}/copies",
+            json={"name": "Copy"},
+        ).json()
+
+        client.patch(
+            f"/api/v1/analysis-targets/{copied['id']}", json={"name": "Renamed Copy"}
+        )
+
+        assert client.get(f"/api/v1/analysis-targets/{original['id']}").json()[
+            "name"
+        ] == ("Blue Bottle Coffee")
+        assert client.get(f"/api/v1/analysis-targets/{copied['id']}").json()[
+            "name"
+        ] == ("Renamed Copy")
+
+    def test_user_b_cannot_save_as_user_a_analysis(
+        self, client_factory, user_a, user_b
+    ):
+        original = _create_target(client_factory(user_a)).json()
+
+        response = client_factory(user_b).post(
+            f"/api/v1/analysis-targets/{original['id']}/copies",
+            json={"name": "Unauthorized Copy"},
+        )
+
+        assert response.status_code == 404
+
+    def test_blank_copy_name_is_rejected(self, client_factory, user_a):
+        client = client_factory(user_a)
+        original = _create_target(client).json()
+
+        response = client.post(
+            f"/api/v1/analysis-targets/{original['id']}/copies",
+            json={"name": "   "},
+        )
+
+        assert response.status_code == 422
 
 
 def _load_target(session, target_id):

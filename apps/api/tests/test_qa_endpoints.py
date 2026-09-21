@@ -265,6 +265,48 @@ def test_provider_failure_is_safe_and_not_persisted(
     assert history.json()["items"] == []
 
 
+def test_owner_can_clear_question_history_without_deleting_reviews(
+    client_factory, app_session, user_a, monkeypatch
+):
+    target = _target(app_session, user_a, "Clear History Cafe")
+    review = _review(app_session, target, "Good coffee.")
+    provider = FakeProvider(
+        LLMResult(
+            answer="Customers like the coffee.",
+            result_kind=QAResultKind.GROUNDED,
+            evidence_review_ids=(str(review.id),),
+        )
+    )
+    monkeypatch.setattr(qa_service, "get_llm_provider", lambda: provider)
+    client = client_factory(user_a)
+    client.post(
+        f"/api/v1/analysis-targets/{target.id}/questions",
+        json={"question": "What do customers like?"},
+    )
+
+    response = client.delete(f"/api/v1/analysis-targets/{target.id}/questions")
+
+    assert response.status_code == 204
+    assert client.get(f"/api/v1/analysis-targets/{target.id}/questions").json() == {
+        "items": []
+    }
+    assert (
+        client.get(f"/api/v1/analysis-targets/{target.id}/reviews").json()["total"] == 1
+    )
+
+
+def test_user_b_cannot_clear_user_a_question_history(
+    client_factory, app_session, user_a, user_b
+):
+    target = _target(app_session, user_a, "Private History Cafe")
+
+    response = client_factory(user_b).delete(
+        f"/api/v1/analysis-targets/{target.id}/questions"
+    )
+
+    assert response.status_code == 404
+
+
 def test_missing_provider_key_returns_safe_503_not_500(
     client_factory, app_session, user_a, monkeypatch
 ):
