@@ -4,412 +4,352 @@ _ReviewLens AI - CS 490 Capstone_
 
 ## 1. Purpose
 
-This document defines exactly how teams should prepare for and run the Sprint 3 ReviewLens AI demonstration.
+This document defines how teams should prepare for and run the final Sprint 3 ReviewLens demonstration.
 
-Sprint 3 is the final production increment of the capstone. The demo should show that ReviewLens is no longer dependent on a developer's local environment and now operates as a small production software system.
+Sprint 3 should show that ReviewLens has become a complete, usable product.
 
-The demo should show:
+The demo should emphasize:
 
-1. A publicly reachable production application.
-2. Automated deployment through the team's CI/CD process.
-3. Protected production configuration and secrets.
-4. Persisted ReviewLens data that survives across sessions and deployments.
-5. Production-safe application lifecycle behavior.
-6. Graceful handling of external-service failures.
-7. Post-deployment health checks and smoke tests.
-8. Security/dependency scanning.
-9. Continued authentication, authorization, ingestion-summary, grounded-Q&A, and scope-guard behavior in production.
+1. Saved-analysis lifecycle.
+2. Persistent Q&A history.
+3. Review refresh/re-ingestion.
+4. Evidence-backed analysis.
+5. Review browsing and filtering.
+6. CSV and Markdown export.
+7. Continued user isolation.
+8. Public deployment.
 
-The demo should be presented as one coherent production ReviewLens workflow rather than as a sequence of Jira tickets.
+The application itself must be demonstrated from its **public web URL**.
 
-The instructor may ask technical questions at any point during the demonstration. Questions are part of the demo and do not stop the clock.
-
----
+The instructor may ask technical questions at any point. Questions are part of the demo and do not stop the clock.
 
 ## 2. Hard Time Limit
 
 The Sprint 3 demo has a **20-minute hard cap**.
 
-The clock includes:
-
-1. Accessing the production application.
-2. Switching accounts.
-3. Instructor questions.
-4. Waiting for model responses.
-5. Opening CI/CD, deployment, health, smoke-test, migration, or security evidence.
-6. Recovery from application or production-environment problems.
-7. Any other setup performed after the demo begins.
+The clock includes authentication, navigation, instructor questions, waiting for ingestion or AI responses, opening test or CI evidence, inspecting exports, and recovery from unexpected problems.
 
 **The demo ends at 20 minutes whether or not every required item has been shown.**
 
 Any required behavior not demonstrated before time expires is considered not demonstrated.
 
-Teams are expected to rehearse the complete production demonstration and prepare all required accounts, data, test resources, browser tabs, pipeline evidence, and operational evidence before class.
-
-A prepared team should target approximately **16-17 minutes of planned demonstration**, leaving room for instructor questions.
-
----
+Teams should target approximately **16-17 minutes of planned demonstration**, leaving room for instructor questions.
 
 ## 3. Required Demo Preparation
 
-Everything needed for the Sprint 3 demonstration should be prepared before the team is called.
+Everything needed for the demonstration should be prepared before the team is called.
 
-The deployed ReviewLens application should already be running and should not require a deployment during the demo simply to become usable.
-
-### 3.1 Required Production Environment
+### 3.1 Public Application
 
 Prepare:
 
-1. A publicly reachable production URL.
-2. A production environment that is already operational before the demo begins.
-3. Working production authentication.
-4. Working production persistence.
-5. Working production LLM access.
-6. Working production access to the team's review ingestion mechanism or previously persisted real review data.
-7. Production configuration that is separate from development and test configuration.
+1. A working public ReviewLens URL.
+2. Working production authentication.
+3. Working persistent storage.
+4. Working Q&A access.
+5. Working export functionality.
 
-The primary application demonstration must use the **deployed production environment**, not a developer's local application instance.
+The primary application demo must use the public deployment.
 
-A local development environment may be used to show source code or local test files, but it is not a substitute for the production application.
+Do not run the ReviewLens application from a developer laptop for the final demo.
 
-### 3.2 Required Production Accounts and Data
+### 3.2 Required Accounts
 
-Prepare **two working production accounts**.
+Prepare two working accounts.
 
-#### User A — Primary Production Demo Account
+#### User A - Primary Demo Account
 
 User A should have:
 
-1. At least **two persisted AnalysisTargets**.
-2. At least one AnalysisTarget created in an earlier session and still available in production.
-3. At least one target with meaningful real persisted review data.
-4. A usable ingestion summary.
-5. A dataset suitable for grounded Q&A and scope-guard demonstration.
-6. One disposable AnalysisTarget that can be safely deleted during the demo.
+1. At least two saved analyses.
+2. At least one analysis created during an earlier session.
+3. A meaningful persisted review dataset.
+4. Persisted Q&A history.
+5. A dataset suitable for evidence-backed Q&A.
+6. One analysis safe to rename or copy.
+7. One disposable analysis safe to delete.
 
-As a guideline, the primary dataset should contain approximately **20 or more real reviews**.
-
-#### User B — Security / Isolation Account
+#### User B - Isolation Account
 
 User B should have:
 
-1. At least one AnalysisTarget.
+1. At least one saved analysis.
 2. A distinct persisted review dataset.
-3. Data that is clearly distinguishable from User A's data.
 
-Prepare one known User A AnalysisTarget URL or identifier that can be used to demonstrate that production authorization still prevents User B from accessing User A's data.
+Prepare one known User A analysis URL or identifier for the user-isolation demonstration.
 
-### 3.3 Required Production Lifecycle Evidence
+### 3.3 Required Review Data
 
-Prepare:
+Prepare an analysis with enough real review data to demonstrate:
 
-1. A persisted AnalysisTarget that can be reopened from an earlier session.
-2. A disposable User A AnalysisTarget that can be deleted safely.
-3. Evidence that cross-user deletion is denied.
-4. If the team supports re-ingestion:
-   - an existing target that can be re-ingested safely, and
-   - a clear explanation of how new ingestion affects the current dataset.
-5. If the team does **not** support re-ingestion:
-   - the instructor-approved equivalent production-lifecycle behavior that replaces that story.
+1. Ingestion summary.
+2. Grounded Q&A.
+3. Supporting evidence.
+4. Complete review browsing.
+5. Rating filtering.
+6. Date filtering when source dates exist.
+7. CSV export.
+8. Markdown export.
 
-Do not use important production data as the deletion demonstration target.
+As a guideline, use approximately **20 or more real reviews**.
 
-### 3.4 Required Production Failure Evidence
+### 3.4 Required Q&A History
 
-Prepare evidence for both of these failure classes:
+Prepare a saved analysis with at least two persisted question/response pairs.
 
-1. **Review ingestion/external source failure**
-2. **LLM provider failure**
+At least one grounded answer should have supporting review evidence.
 
-The evidence may combine:
+### 3.5 Required Re-Ingestion Input
 
-1. A safe live failure case in the deployed application.
-2. Automated tests that simulate the external dependency failure.
-3. Controlled failure-injection or mocked-provider evidence.
-4. Relevant production-safe logs or pipeline evidence.
+Prepare an existing analysis that can be refreshed safely.
 
-The team should be able to show that failures:
+The team should know:
 
-1. Produce meaningful user-facing behavior.
-2. Do not expose raw secrets or unnecessary internal details.
-3. Do not fabricate successful ingestion or AI analysis.
-4. Do not silently destroy previously valid persisted data.
+1. The current review count before refresh.
+2. The expected behavior after refresh.
+3. The team's duplicate-prevention strategy.
+4. How the application protects the current dataset if refresh fails.
 
-Do not intentionally cause a destructive production outage merely for the demo.
+Because public review sources can change or become unavailable, also prepare automated test evidence for failed refresh behavior.
 
-### 3.5 Required CI/CD and Deployment Evidence
+### 3.6 Required Export Evidence
 
-Before the demo begins, identify and be ready to show:
+Prepare to generate:
 
-1. A recent successful production deployment.
-2. The commit or merge that triggered that deployment.
-3. The required CI quality gates that completed before deployment.
-4. Evidence that a failing required gate prevents normal deployment.
-5. Evidence of a failed deployment or failed release stage when available, showing that failure is visible.
-6. The automated post-deployment health verification.
-7. The automated production smoke-test suite.
-8. Security or dependency scanning.
-9. Schema/migration verification appropriate to the team's persistence technology.
-10. Evidence that production configuration and secrets are provided through appropriate protected mechanisms.
+1. One CSV export of the active review dataset.
+2. One Markdown export of the active analysis.
 
-Do **not** display actual secret values during the demo.
+Know where downloaded files will appear so demo time is not spent searching for them.
 
-### 3.6 Required Production Smoke-Test Data
+### 3.7 Required Test and CI Evidence
 
-Prepare any dedicated test account, AnalysisTarget, fixture, or controlled production data needed by the smoke-test suite.
+Identify before the demo:
 
-Smoke tests must be:
+1. A test for Save As or analysis lifecycle.
+2. A Q&A-history persistence test.
+3. A re-ingestion duplicate-prevention test.
+4. A failed-refresh preservation test.
+5. A supporting-evidence ownership/association test.
+6. An export test.
+7. A recent successful CI run.
 
-1. Safe to run repeatedly.
-2. Non-destructive to real user data.
-3. Small enough to run as deployment verification rather than duplicating the complete automated test suite.
+Sprint 1 and Sprint 2 test and CI requirements remain in force.
 
-The team should know which smoke tests verify:
+### 3.8 Demo Readiness and Rehearsal
 
-1. Application health or availability.
-2. Protected access.
-3. Review data or ingestion-summary behavior.
-4. Grounded Q&A.
-5. Scope-guard behavior.
+The team should know:
 
-### 3.7 Demo Readiness and Rehearsal
-
-The team should arrive knowing:
-
-1. Which production account is used at each step.
-2. Which persisted target will be reopened.
-3. Which target will be used for Q&A.
-4. Which disposable target will be deleted.
-5. Which User A resource will be used for the User B authorization check.
-6. Which failure evidence will be shown.
-7. Which successful production deployment will be shown.
-8. Which health-check and smoke-test run will be shown.
-9. Which security scan will be shown.
-10. Which migration/schema evidence will be shown.
-11. Which team member will explain each major area.
+1. Which saved analysis will be reopened.
+2. Which analysis will be renamed.
+3. Which analysis will be used for Save As.
+4. Which analysis will be refreshed.
+5. Which grounded question will demonstrate supporting evidence.
+6. Which filters will be applied.
+7. Which exports will be generated.
+8. Which disposable analysis will be deleted.
+9. Which User A resource will be used for the User B isolation check.
+10. Which tests and CI run will be shown.
 
 Avoidable preparation problems are not reasons to extend the demo.
-
----
 
 ## 4. Before the Clock Starts
 
 Before the team is called:
 
-1. Confirm that the public production URL works.
-2. Confirm that User A and User B can authenticate in production.
-3. Confirm that prepared persisted targets and review data exist.
-4. Confirm that the prepared Q&A questions still behave as expected.
-5. Confirm that the disposable deletion target exists.
-6. Confirm that required CI/CD and deployment evidence is available.
-7. Confirm that health-check and smoke-test evidence is available.
-8. Confirm that security-scan evidence is available.
-9. Confirm that migration/schema evidence is available.
-10. Open any browser tabs, pipeline pages, logs, test files, or repository files that will be needed.
+1. Confirm that the public URL works.
+2. Confirm that User A and User B can authenticate.
+3. Confirm that prepared saved analyses exist.
+4. Confirm that Q&A history exists.
+5. Confirm that review evidence is available.
+6. Confirm that the re-ingestion source is usable when practical.
+7. Confirm that exports work.
+8. Confirm that required tests pass.
+9. Confirm that CI evidence is available.
+10. Open any repository/test/CI pages that will be needed.
 
-Do not begin with a slide deck or project-history presentation.
+Start with the public ReviewLens application.
 
-Start with the publicly deployed application.
-
----
+Do not begin with a slide deck.
 
 ## 5. Live Demo Script
 
-The sequence below is the expected Sprint 3 demonstration order.
-
-### Step 1 — Open the Public Production Application
-
-**Target time: approximately 1 minute**
-
-Open the public ReviewLens production URL.
-
-Begin logged out.
-
-Show:
-
-1. The production application is reachable.
-2. Protected ReviewLens functionality still requires authentication.
-3. User A can authenticate successfully in production.
-
-Briefly identify the hosting/deployment platform.
-
-Do not spend time re-demonstrating managed-authentication features already established in Sprint 1.
-
-### Step 2 — Reopen Persisted Production Data
-
-**Target time: approximately 2 minutes**
-
-Using User A:
-
-1. Open the AnalysisTarget list.
-2. Select the prepared target created during an earlier session.
-3. Show that the target still exists.
-4. Show its persisted review data.
-5. Show its ingestion state.
-6. Show its ingestion summary.
-
-Demonstrate that the application does not require re-ingestion merely because the browser session ended or a new deployment occurred.
-
-Be prepared to explain where production data is stored and how the deployed application connects to it.
-
-### Step 3 — Demonstrate the Production ReviewLens Workflow
-
-**Target time: approximately 2-3 minutes**
-
-Using the persisted target:
-
-1. Show the ingestion summary.
-2. Ask one prepared in-scope review question.
-3. Show a grounded answer based on the production review dataset.
-4. Ask one prepared out-of-scope question.
-5. Show the production scope guard decline it.
-
-This is a regression check of the major Sprint 2 behavior.
-
-Do not repeat the full Sprint 2 demonstration.
-
-The purpose is to establish that the deployed production system still behaves as ReviewLens.
-
-### Step 4 — Demonstrate Production Lifecycle and Authorization
-
-**Target time: approximately 2-3 minutes**
-
-#### Part A — Delete an Owned Disposable Target
-
-Using User A:
-
-1. Open the prepared disposable AnalysisTarget.
-2. Delete it.
-3. Show that it is no longer normally accessible.
-4. Briefly explain what happens to associated reviews and ingestion data.
-
-The team should know whether its design uses:
-
-1. Cascading deletion.
-2. Soft deletion.
-3. Another documented strategy.
-
-#### Part B — Demonstrate Cross-User Protection
-
-Identify or use the prepared URL/identifier for a different User A target that must remain intact.
-
-Then:
-
-1. Log out of User A.
-2. Authenticate as User B.
-3. Deliberately request the known User A resource.
-4. Show that production authorization denies access.
-
-If the team has an automated cross-user deletion test, be prepared to show it as supporting evidence.
-
-### Step 5 — Demonstrate Re-Ingestion or Approved Equivalent Lifecycle Behavior
+### Step 1 - Open the Public Application and Reopen a Saved Analysis
 
 **Target time: approximately 1-2 minutes**
 
-If the team supports re-ingestion:
+Open the public ReviewLens URL and authenticate as **User A**.
 
-1. Open the prepared existing AnalysisTarget.
-2. Initiate or show evidence of a new ingestion run.
-3. Show that the application clearly distinguishes the new result from prior ingestion state.
-4. Explain whether the strategy replaces, merges, or otherwise reconciles review data.
-5. Show or explain how a failed re-ingestion avoids destroying previously valid data.
+Use the left analysis sidebar to reopen an analysis created during an earlier session.
 
-If the team deliberately does not support re-ingestion, demonstrate the instructor-approved equivalent production-lifecycle story instead.
+Show that the analysis restores:
 
-### Step 6 — Demonstrate Production Failure Handling
+1. Human-readable analysis name.
+2. Entity/source context.
+3. Current review dataset.
+4. Ingestion summary.
+5. Persisted Q&A history.
+
+### Step 2 - Demonstrate Rename and Save As
 
 **Target time: approximately 2 minutes**
 
-Show prepared evidence for both:
-
-1. Review ingestion/external source failure.
-2. LLM provider failure.
-
-For each failure, demonstrate or show test evidence that ReviewLens:
-
-1. Produces meaningful user-facing behavior.
-2. Does not display raw exception details as the normal user experience.
-3. Does not expose secrets.
-4. Does not fabricate successful results.
-5. Preserves previously valid data where applicable.
-
-Be prepared to explain where technical diagnostic information is logged.
-
-### Step 7 — Show the Automated Production Release Pipeline
-
-**Target time: approximately 3 minutes**
-
-Open a recent successful release workflow.
-
-Trace the release from source change to production.
+Rename one owned analysis.
 
 Show that:
 
-1. Required Sprint 1 and Sprint 2 quality gates run before deployment.
-2. Required Sprint 3 security/dependency checks run.
-3. Deployment occurs automatically from the protected release branch or equivalent workflow.
-4. The deployment identifies the commit being released.
-5. A failing required quality gate prevents normal deployment.
-6. Deployment failure is visible when it occurs.
+1. The new name appears in the analysis sidebar.
+2. The source URL and review data remain unchanged.
 
-The team does not need to intentionally break production during the demo.
+Then use **Save As** on a prepared analysis and give the copy a new name.
 
-A prior failed workflow or controlled branch failure is sufficient evidence.
+Show that:
 
-### Step 8 — Show Production Configuration, Migration, and Security Evidence
+1. The original remains intact.
+2. The copy has a separate analysis identity.
+3. The copy has the expected current review dataset.
+4. A later rename of the copy does not rename the original.
 
-**Target time: approximately 1-2 minutes**
+### Step 3 - Show Persistent Q&A History
 
-Show enough configuration evidence to establish that production is configured separately and securely.
+**Target time: approximately 1 minute**
 
-Demonstrate:
+Open the prepared analysis containing prior Q&A.
 
-1. Required production configuration names or masked configuration entries.
-2. Server-side secrets are not committed to source control or exposed to the browser.
-3. Development/test/production configuration can differ without source-code edits.
+Show at least two previously persisted question/response pairs.
 
-Then show:
+Briefly demonstrate that switching to another analysis changes the visible Q&A history appropriately.
 
-1. Migration/schema-management evidence appropriate to the team's persistence technology.
-2. The security/dependency scan and how findings are reviewed.
+Return to the primary analysis.
 
-Do not display actual secret values.
+### Step 4 - Demonstrate Evidence-Backed Q&A
 
-### Step 9 — Show Post-Deployment Health and Smoke Tests
+**Target time: approximately 2-3 minutes**
+
+Ask a prepared in-scope question.
+
+Show that ReviewLens produces a grounded answer and displays supporting review evidence.
+
+If the application provides a **View matching reviews** or equivalent action, open it.
+
+Be prepared to explain:
+
+1. How supporting reviews are selected.
+2. How ReviewLens ensures they belong to the active AnalysisTarget.
+3. How review identity is preserved between retrieval and presentation.
+
+Do not present a numerical confidence score unless the team has a defensible method for calculating it.
+
+### Step 5 - Browse and Filter the Review Dataset
 
 **Target time: approximately 2 minutes**
 
-Show the automated post-deployment verification associated with a recent release.
+Open the complete review dataset for the active analysis.
 
-Demonstrate:
+Show representative review fields such as:
 
-1. Health verification ran against the deployed application.
-2. Smoke tests ran against the deployed or production-equivalent environment.
-3. The smoke suite verifies representative critical behavior.
-4. The smoke suite is safe to run repeatedly.
-5. A failed required post-deployment verification produces a visible release failure.
+1. Rating.
+2. Review text.
+3. Date when available.
+4. Reviewer/display name when available.
 
-Identify which smoke tests cover:
+Apply:
 
-1. Protected access.
-2. Review data or ingestion summary.
-3. Grounded Q&A.
-4. Scope-guard behavior.
+1. A rating filter.
+2. A date/date-range filter when source dates are available.
 
-The smoke suite should be intentionally smaller than the complete test suite.
+Show that the results change appropriately and remain scoped to the active analysis.
 
-### Step 10 — Close the Demo
+### Step 6 - Refresh / Re-Ingest the Existing Analysis
+
+**Target time: approximately 2-3 minutes**
+
+Open the prepared existing analysis and initiate a refresh/re-ingestion.
+
+Show:
+
+1. The user does not need to create a new analysis.
+2. A new ingestion attempt is recorded.
+3. Successful refresh updates the current dataset and ingestion summary.
+4. Duplicate source reviews are not silently multiplied.
+
+If the external review source is too slow or unavailable, use prepared successful-refresh evidence and continue.
+
+Be prepared to show automated test evidence proving:
+
+1. Duplicate prevention.
+2. A failed refresh preserves the last known-good dataset.
+
+### Step 7 - Export the Analysis
+
+**Target time: approximately 2 minutes**
+
+From the active analysis:
+
+1. Export the current review dataset to CSV.
+2. Show the downloaded filename.
+3. Briefly inspect the file to verify representative review data.
+
+Then:
+
+1. Export the analysis to Markdown.
+2. Show the downloaded filename.
+3. Briefly inspect the document.
+
+The Markdown export should contain useful analysis context such as analysis name, entity/source information, ingestion summary, Q&A history when present, and supporting evidence when associated with saved Q&A.
+
+### Step 8 - Delete an Owned Analysis
+
+**Target time: approximately 1 minute**
+
+Delete the prepared disposable analysis or Save As copy.
+
+Show:
+
+1. Clear confirmation of destructive intent.
+2. The analysis disappears from normal retrieval.
+3. The team can briefly explain how associated data is handled.
+
+Do not delete the primary demonstration dataset.
+
+### Step 9 - Confirm Multi-User Isolation on the Public Application
+
+**Target time: approximately 1 minute**
+
+Identify a known User A analysis URL or identifier.
+
+Log out and authenticate as **User B**.
+
+Deliberately attempt to access the User A analysis.
+
+Show that access is denied.
+
+The fact that User A's analysis is absent from User B's sidebar is not, by itself, sufficient evidence.
+
+### Step 10 - Show Representative Tests and CI
+
+**Target time: approximately 2 minutes**
+
+Show a small number of representative Sprint 3 tests.
+
+Include evidence for:
+
+1. Q&A-history persistence or analysis lifecycle.
+2. Re-ingestion duplicate prevention or failed-refresh preservation.
+3. Supporting-evidence association/ownership.
+4. Export behavior.
+
+Then show a recent successful CI run demonstrating that the established required quality gates still pass.
+
+Do not scroll through the entire test suite.
+
+### Step 11 - Close the Demo
 
 **Target time: approximately 30 seconds**
 
 Conclude with two brief statements:
 
-1. What makes the current ReviewLens implementation production-ready compared with Sprint 2.
-2. One significant improvement the team would make if development continued beyond the capstone.
-
-Do not repeat the full demonstration or present a summary slide deck.
-
----
+1. What Sprint 3 added that makes ReviewLens feel like a complete product.
+2. One improvement the team would make if development continued.
 
 ## 6. Instructor Questions During the Demo
 
@@ -417,53 +357,49 @@ The instructor may ask questions at any point.
 
 Questions may address:
 
-1. Hosting and deployment architecture.
-2. CI/CD dependencies and release gating.
-3. Production configuration and secret handling.
-4. Database migrations or schema management.
-5. Production persistence.
-6. Failure handling.
-7. Logging.
-8. Security/dependency scanning.
-9. Smoke-test design.
-10. Health-check design.
-11. User-ownership enforcement in production.
-12. Q&A and scope-guard regression behavior.
-13. Operational tradeoffs.
-14. Code or configuration written or modified by a specific team member.
+1. Saved-analysis persistence.
+2. Save As semantics.
+3. Q&A-history storage.
+4. Re-ingestion behavior.
+5. Duplicate detection.
+6. Failed-refresh protection.
+7. Evidence selection.
+8. Review filtering.
+9. Export generation.
+10. Ownership and authorization.
+11. Public deployment.
+12. Architecture and implementation tradeoffs.
+13. Code written or modified by a specific team member.
 
 The team member responsible for the relevant area should normally answer.
 
-The instructor may ask to see code, pipeline configuration, deployment logs, tests, health checks, security findings, or migration artifacts when needed to clarify what is being demonstrated.
-
 **The demo clock continues while questions are being answered.**
-
----
 
 ## 7. Final Preparation Checklist
 
 Before demo day, confirm all of the following:
 
-- [ ] Public production URL is operational.
-- [ ] Production authentication works.
-- [ ] User A production account works.
-- [ ] User B production account works.
-- [ ] User A has persisted AnalysisTargets from an earlier session.
-- [ ] User A has meaningful persisted real review data.
-- [ ] User B has distinct persisted data.
-- [ ] A disposable User A target is prepared for deletion.
-- [ ] A User A target URL/resource ID is known for the User B authorization check.
-- [ ] Re-ingestion example or approved equivalent lifecycle behavior is prepared.
-- [ ] Ingestion/external-source failure evidence is prepared.
-- [ ] LLM-provider failure evidence is prepared.
-- [ ] Recent successful deployment workflow is identified.
-- [ ] Failed quality-gate/deployment evidence is identified.
-- [ ] Production health-check evidence is identified.
-- [ ] Production smoke-test evidence is identified.
-- [ ] Security/dependency-scan evidence is identified.
-- [ ] Migration/schema-management evidence is identified.
-- [ ] Production configuration evidence is ready without exposing secrets.
-- [ ] Smoke-test data is safe and repeatable.
+- [ ] Public ReviewLens URL works.
+- [ ] User A account works.
+- [ ] User B account works.
+- [ ] User A has at least two saved analyses.
+- [ ] At least one analysis was created in an earlier session.
+- [ ] Persisted Q&A history is available.
+- [ ] Supporting evidence is available for a grounded answer.
+- [ ] Complete review browsing works.
+- [ ] Rating filter works.
+- [ ] Date filter works when source dates are available.
+- [ ] A safe analysis is prepared for Save As.
+- [ ] A disposable analysis is prepared for deletion.
+- [ ] An existing analysis is prepared for re-ingestion.
+- [ ] Duplicate-prevention test evidence is identified.
+- [ ] Failed-refresh preservation test evidence is identified.
+- [ ] CSV export works.
+- [ ] Markdown export works.
+- [ ] Exported filenames are meaningful.
+- [ ] A known User A resource is prepared for the User B isolation check.
+- [ ] Representative Sprint 3 tests are identified.
+- [ ] Latest successful CI run is easy to access.
 - [ ] Demo browser tabs/tools are prepared.
 - [ ] Team members know who will explain each area.
-- [ ] The complete production demonstration has been rehearsed within the 20-minute hard cap.
+- [ ] The complete demonstration has been rehearsed within the 20-minute hard cap.
