@@ -6,7 +6,7 @@ _ReviewLens AI - CS 490 Capstone_
 
 This rubric is used to evaluate the Sprint 3 ReviewLens AI demonstration.
 
-The student-facing `Sprint3Demo.md` defines what teams are expected to prepare and demonstrate. This rubric is primarily an instructor scoring tool.
+The student-facing Sprint 3 demo requirements define what teams are expected to prepare and demonstrate. This rubric is primarily an instructor scoring tool.
 
 ### Objective Checklist
 
@@ -29,14 +29,14 @@ Award **0 to 10 points** based on the complete demonstration.
 Consider:
 
 1. Technical understanding.
-2. Production architecture and design quality.
-3. Ability to explain deployment and operational tradeoffs.
-4. Understanding of security and production configuration.
-5. Understanding of reliability and failure handling.
-6. Understanding of testing and release verification.
+2. Design and architecture quality.
+3. Ability to explain implementation decisions and tradeoffs.
+4. Understanding of persistence and lifecycle behavior.
+5. Understanding of Q&A evidence and ownership boundaries.
+6. Understanding of re-ingestion and failure safety.
 7. Ability to answer questions accurately and concisely.
 8. Quality and organization of the presentation.
-9. Evidence that multiple team members understand the production system.
+9. Evidence that multiple team members understand the completed system.
 
 Suggested scale:
 
@@ -60,16 +60,16 @@ There is no fixed cap.
 
 A confirmed bug/fault includes:
 
-1. Crash, unhandled runtime error, or broken required production flow.
+1. Crash, unhandled runtime error, or broken required flow.
 2. Behavior that clearly contradicts a Sprint 1, Sprint 2, or Sprint 3 requirement.
-3. Required production evidence that should exist but is unavailable when requested.
-4. User-visible error handling that exposes raw exceptions, stack traces, credentials, provider errors, or other technical failure information not meaningful to an average user.
-5. Production authentication or ownership protection that fails.
-6. Production ingestion or Q&A behavior that fabricates successful results after an external-service failure.
-7. Deletion or re-ingestion behavior that unexpectedly corrupts valid persisted data.
-8. A release reported as successful even though required deployment or post-deployment verification failed.
-9. A production regression in ingestion summary, grounded Q&A, scope guard, or user isolation.
-10. A previously demonstrated valid workflow that breaks later in the same demo.
+3. Required evidence that should exist but is unavailable when requested.
+4. User-visible error handling that exposes raw exceptions, stack traces, provider errors, or other technical failure information not meaningful to an average user.
+5. Saved-analysis behavior that unexpectedly changes or corrupts another analysis.
+6. Q&A history that appears under the wrong analysis.
+7. Re-ingestion that duplicates reviews incorrectly, replaces valid data after a failed refresh, or leaves the active dataset ambiguous.
+8. Supporting evidence that does not belong to the active AnalysisTarget or does not correspond to persisted review data.
+9. Export that includes incorrect, stale, or cross-user data.
+10. Public deployment behavior that differs materially from the required completed ReviewLens workflow.
 
 A deliberately demonstrated negative case is not a bug when the application handles the failure correctly.
 
@@ -86,9 +86,9 @@ Deduct **0 to 5 points** for avoidable lack of preparation.
 - **-4:** Major readiness problems prevent several required items from being demonstrated efficiently.
 - **-5:** Team is substantially unprepared.
 
-Readiness deductions may apply when the public environment, production accounts, persisted data, lifecycle targets, failure evidence, release evidence, health checks, smoke tests, security scans, migration evidence, or other expected production prerequisites were not prepared in advance.
+Readiness deductions may apply when required production accounts, saved analyses, Q&A history, review data, refresh inputs, export evidence, tests, CI evidence, or other expected demo prerequisites were not prepared in advance.
 
-A temporary third-party outage by itself is not a readiness problem when the deployed application handles it correctly and the team has prepared appropriate evidence.
+A temporary third-party review-source or LLM outage by itself is not a readiness problem when the team has prepared appropriate fallback evidence and continues the demo efficiently.
 
 ---
 
@@ -96,42 +96,52 @@ A temporary third-party outage by itself is not a readiness problem when the dep
 
 Score each item `0`, `1`, or `2`.
 
-### A. Production Deployment and Configuration
+### A. Saved Analysis Lifecycle
 
 | ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
 | --- | --- | --- | --- | --- |
-| C01 | ReviewLens is publicly deployed and operational | Public production URL loads and protected production functionality is usable | S3-001, S3-020 |  |
-| C02 | Production deployment is automated and gated by required checks | Recent release shows required CI gates completing before automated deployment from the protected release workflow | S3-001, S3-013 |  |
-| C03 | Failed quality gates or deployment failures are visible and prevent a normal successful release | Prior failure evidence shows deployment is blocked or release failure is surfaced clearly | S3-013, S3-014 |  |
-| C04 | Production configuration and secrets are separated and protected | Team shows masked/protected production configuration; server-side secrets are not committed or browser-exposed | S3-005, S3-006 |  |
-| C05 | Persistence schema/migration compatibility is handled repeatably | Team shows migration/schema-management and release verification appropriate to its persistence technology | S3-015 |  |
+| C01 | User can name and save an analysis | Analysis has a human-readable name distinct from the source URL and appears correctly in the analysis sidebar | S3-001 |  |
+| C02 | User can rename a saved analysis | Name changes without altering source URL, review dataset, or other analysis state | S3-002 |  |
+| C03 | Save As creates an independent analysis | Copy has a separate identity; changes to the copy do not mutate the original | S3-003 |  |
+| C04 | Returning user can reopen a saved analysis | Earlier-session analysis restores source context, current review dataset, ingestion state, and summary | S3-004 |  |
+| C05 | User can delete an owned analysis safely | Deletion requires clear intent, removes the analysis from normal retrieval, and preserves ownership enforcement | S3-005 |  |
 
-### B. Production Lifecycle and Reliability
-
-| ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
-| --- | --- | --- | --- | --- |
-| C06 | Returning user can reopen persisted production AnalysisTarget data | Earlier-session target, review data, ingestion state, and summary remain usable in production | S3-009 |  |
-| C07 | User can delete an owned disposable AnalysisTarget safely | Deleted target is no longer normally accessible and associated-data behavior matches the documented persistence design | S3-010 |  |
-| C08 | Cross-user destructive or resource access remains denied in production | User B cannot access/delete a known User A target; User A data remains intact | S3-011, S3-020 |  |
-| C09 | Re-ingestion or approved equivalent lifecycle behavior is handled consistently | New ingestion state is distinguishable and valid existing data is protected, or approved equivalent behavior is demonstrated | S3-012 |  |
-| C10 | Review ingestion/external-service failure is handled safely | Failure produces meaningful behavior, no fabricated success, protected diagnostics, and preserved valid data | S3-007 |  |
-| C11 | LLM-provider failure is handled safely | Provider failure produces meaningful application behavior rather than fabricated analysis or raw provider errors | S3-008 |  |
-
-### C. Complete Production ReviewLens Behavior
+### B. Persistent Q&A History
 
 | ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
 | --- | --- | --- | --- | --- |
-| C12 | Production authentication and protected access still work | Public application requires authentication for protected ReviewLens behavior | S3-016, S3-020 |  |
-| C13 | Production review data and ingestion summary remain correct | Controlled production target can access persisted reviews and expected summary behavior | S3-017, S3-020 |  |
-| C14 | Production grounded Q&A works against the intended AnalysisTarget | In-scope production question receives a usable review-grounded response | S3-018, S3-020 |  |
-| C15 | Production scope guard still rejects out-of-scope requests | Representative unrelated question is declined in the deployed application | S3-019, S3-020 |  |
-| C16 | Multi-user production isolation remains intact | Production behavior and/or controlled evidence shows users cannot access one another's ReviewLens data or AI context | S3-020 |  |
+| C06 | Questions and ReviewLens responses are persisted | Saved analysis retains meaningful Q&A records associated with that AnalysisTarget | S3-006 |  |
+| C07 | Q&A history is restored with the correct analysis | Reopening/switching analyses loads only the history belonging to the active analysis | S3-007 |  |
+| C08 | Q&A history can be cleared without deleting analysis data | Clearing history leaves the AnalysisTarget, review dataset, source, and ingestion summary intact | S3-008 |  |
 
-### D. Post-Deployment Verification and Security
+### C. Review Refresh and Re-Ingestion
 
 | ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
 | --- | --- | --- | --- | --- |
-| C17 | Automated health verification runs after deployment | Recent release includes health/readiness verification against the deployed application and failure is detectable | S3-002 |  |
-| C18 | Automated production smoke-test suite verifies critical behavior safely | Smoke tests run against deployed/production-equivalent environment and are repeatable without corrupting real data | S3-003, S3-016, S3-017, S3-018, S3-019 |  |
-| C19 | Security/dependency scanning is meaningful and reviewed | CI shows appropriate automated scanning and team can explain how significant findings are handled | S3-004 |  |
-| C20 | Release pipeline provides end-to-end production verification | Recent release traces quality gates, deployment, health/smoke verification, and visible release outcome for the deployed commit | S3-001, S3-002, S3-003, S3-013, S3-014 |  |
+| C09 | Existing analysis can be refreshed/re-ingested | User can initiate a new ingestion attempt without creating a new AnalysisTarget | S3-009 |  |
+| C10 | Successful refresh becomes the current dataset coherently | Summary, review browsing, Q&A, and export all reflect the newly current dataset | S3-010 |  |
+| C11 | Re-ingestion prevents duplicate source reviews | Team demonstrates or directly evidences a deterministic duplicate strategy and automated test coverage | S3-011 |  |
+| C12 | Failed refresh preserves the last known-good dataset | Failure is recorded/communicated without replacing valid persisted review data | S3-012 |  |
+
+### D. Evidence and Review Exploration
+
+| ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
+| --- | --- | --- | --- | --- |
+| C13 | Grounded answers display supporting review evidence | Representative persisted reviews are shown with the answer and correspond to the active AnalysisTarget | S3-013 |  |
+| C14 | User can inspect matching/supporting reviews | Application provides access to the broader set of reviews identified as relevant to the grounded answer when such a set exists | S3-014 |  |
+| C15 | User can browse the complete current review dataset | Complete active dataset is inspectable with useful review fields rather than only a small preview | S3-015 |  |
+| C16 | User can filter reviews by rating and date | Filters operate correctly on the active persisted dataset; date filtering is demonstrated when source dates exist | S3-016 |  |
+
+### E. Export
+
+| ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
+| --- | --- | --- | --- | --- |
+| C17 | Active review dataset exports correctly to CSV | Download contains representative current persisted review data and respects ownership boundaries | S3-017 |  |
+| C18 | Saved analysis exports correctly to Markdown | Download contains useful analysis context, summary, Q&A history when present, and supporting evidence when applicable | S3-018 |  |
+| C19 | Export filenames and metadata are meaningful | Files are named from the analysis/entity rather than generically and include useful identifying metadata where appropriate | S3-019 |  |
+
+### F. Public Delivery
+
+| ID | Criterion | Evidence to Observe | Sprint 3 Story Coverage | Score |
+| --- | --- | --- | --- | --- |
+| C20 | Complete ReviewLens application is publicly deployed | Stable public URL supports authentication, ownership isolation, saved analyses, ingestion/refresh, summary, review exploration, grounded Q&A, scope guards, Q&A history, and export | S3-020 |  |

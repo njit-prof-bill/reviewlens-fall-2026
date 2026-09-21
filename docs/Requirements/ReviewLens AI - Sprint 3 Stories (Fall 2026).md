@@ -10,789 +10,554 @@ Story writing format for Jira:
 - Technical Guidance — implementation boundaries and expectations
 - Rules — applicable canonical business rules
 
-Sprint 3 focus: Production deployment, CI/CD automation, production configuration, application hardening, post-deployment verification, and completion of the production ReviewLens workflow.
+Sprint 3 focus: saved-analysis lifecycle, persistent Q&A history, review refresh, evidence exploration, export, and public delivery.
 
-Total stories: 20
+Total stories: 20.
 
-Stories S3-001 through S3-004 establish the Sprint 3 deployment and reliability baseline and are primarily team-level engineering work.
+Sprint 1 and Sprint 2 requirements remain in force unless explicitly changed here.
 
-Stories S3-005 through S3-020 define the primary application capabilities for Sprint 3. These 16 feature stories provide approximately three to four primary feature stories per developer for a five-person team.
+## How To Read This Sprint
 
-## How To Read This Sprint Document
-
-1. This file is the authoritative source for Sprint 3 scope.
-2. `README.md` provides the overall product description, but Sprint 3 grading is based on this file.
-3. Sprint 1 and Sprint 2 requirements remain in force unless explicitly changed here.
-4. Sprint 3 represents the final production increment of the capstone.
-5. Technical Guidance defines important implementation expectations but intentionally does not prescribe a specific hosting provider, cloud architecture, deployment platform, database technology, or CI/CD product unless explicitly stated.
-6. Teams should make reasonable engineering decisions where implementation details are unspecified.
-7. The objective of Sprint 3 is not merely to place the application on the internet. The deployed system must preserve the security, quality, and ReviewLens behavior developed during the first two sprints.
+1. These active sprint requirements define required Sprint 3 scope and grading expectations.
+2. The Product Requirements Document defines the overall product direction.
+3. UX specifications define the intended user experience.
+4. Technical specifications define project-level engineering guardrails.
+5. Teams should make reasonable engineering decisions where implementation details are unspecified.
+6. The objective of Sprint 3 is to complete ReviewLens as a useful product, not to build unnecessary production infrastructure.
 
 ## Sprint 3 Demonstration Goal
 
-The Sprint 3 application should demonstrate the complete production ReviewLens workflow:
+The final ReviewLens application should demonstrate this complete workflow:
 
-1. A code change passes through the team's required CI quality gates.
-2. An approved release is deployed through the team's automated deployment process.
-3. Post-deployment verification confirms that the application is operational.
-4. A user accesses the publicly deployed application.
-5. The user authenticates.
-6. The user creates or reopens an AnalysisTarget.
-7. The user accesses real persisted review data or performs ingestion.
-8. The user views the ingestion result summary.
-9. The user asks an in-scope review question and receives a grounded response.
-10. The user asks an out-of-scope question and ReviewLens declines it.
-11. The team demonstrates that a different authenticated user cannot access the first user's data.
-12. The team shows representative production health, smoke-test, and CI/CD evidence.
+1. A user accesses ReviewLens at a public URL and authenticates.
+2. The user reopens a previously saved analysis from the analysis sidebar.
+3. The analysis has a meaningful human-readable name.
+4. Previously persisted review data and Q&A history are available.
+5. The user can rename or Save As an analysis.
+6. Grounded answers include useful supporting review evidence.
+7. The user can inspect and filter the underlying review dataset.
+8. The user can refresh or re-ingest an existing analysis without corrupting the current dataset.
+9. The user can export review data to CSV.
+10. The user can export the analysis to Markdown.
+11. The user can delete an analysis they own.
+12. A second authenticated user remains isolated from the first user's data.
+13. The complete workflow operates from the publicly deployed application.
 
-The team should demonstrate this as one coherent production application experience rather than as a collection of disconnected infrastructure features.
+The demo should present these capabilities as one coherent product experience rather than as a sequence of Jira stories.
 
 ---
 
-# CI/CD and Testing Requirements (Required)
+# CI/CD and Testing Requirements
 
 All Sprint 1 and Sprint 2 CI/CD and testing requirements remain mandatory.
 
-Sprint 3 adds deployment verification, smoke testing, migration verification, security scanning, and production reliability requirements.
+Sprint 3 does **not** add a new infrastructure-heavy CI/CD ratchet.
 
-## CI/CD Sprint 3 Ratchet
-
-Every pull request must continue to run:
+Every pull request must continue to run the team's established required checks, including:
 
 1. Lint or equivalent static checks.
 2. Application build.
 3. Automated unit tests.
 4. Required integration tests.
-5. Changed-code coverage gate.
+5. Changed-code coverage gate or equivalent mechanism.
 6. Required AI orchestration and scope-guard tests.
+7. Required checks must pass before merge through the normal protected-branch workflow.
 
-Sprint 3 additionally requires:
+## Sprint 3 Test Baseline
 
-7. Automated deployment from the team's protected release branch, normally `main` or equivalent.
-8. Deployment must occur only after required quality gates pass.
-9. Post-deployment health verification.
-10. Automated smoke testing against the deployed application or production-equivalent environment.
-11. Schema or migration verification when persistent-storage changes require it.
-12. Dependency or security scanning appropriate to the selected technology stack.
-13. Deployment or post-deployment failures must be visible in the pipeline.
-14. A failed required deployment verification step must result in a failed release workflow rather than an apparently successful deployment.
-
-## Test Baseline Expectations
-
-1. Every feature story must include an appropriate automated test update.
+1. Every Sprint 3 feature story must include appropriate automated test updates.
 2. Sprint 1 and Sprint 2 regression tests must continue to pass.
-3. Production smoke tests should verify a small number of critical workflows rather than attempting to duplicate the complete automated test suite.
-4. Smoke tests should be repeatable and safe to run against the deployed environment.
-5. Production verification must not depend solely on a developer manually clicking through the application.
-6. Production tests must preserve user isolation and must not expose real user data.
-7. Environment-specific failures should be distinguishable from ordinary application failures where practical.
-8. Security scanning should identify known dependency or configuration problems relevant to the team's technology stack.
-9. Deployment tests should verify observable production behavior rather than merely verifying that a hosting command returned success.
-
-## Minimum Test Evidence by Story Type
-
-### Deployment
-
-1. Required quality gates execute before deployment.
-2. Passing release can deploy.
-3. Failing required check prevents deployment.
-4. Deployment result is visible.
-
-### Production Health
-
-1. Application endpoint is reachable.
-2. Backend dependency or service health is verified where appropriate.
-3. Failure produces a detectable non-success result.
-
-### Smoke Testing
-
-1. Authentication or protected access works.
-2. User-owned ReviewLens data can be accessed.
-3. Ingestion or persisted review access works.
-4. Ingestion summary works.
-5. Q&A works.
-6. Scope guard still rejects an out-of-scope question.
-
-### Security
-
-1. Secrets are not stored in source control.
-2. Production ownership rules remain enforced.
-3. Cross-user access is denied.
-4. Relevant dependency or configuration scanning runs automatically.
-
-### Persistence and Migration
-
-1. Required schema changes can be applied.
-2. Application starts against the resulting schema.
-3. Existing critical data remains usable after the change where applicable.
+3. Saved-analysis lifecycle tests must verify user ownership.
+4. Q&A-history tests must verify correct AnalysisTarget association.
+5. Re-ingestion tests must verify dataset integrity and failure safety.
+6. Evidence tests must verify that cited reviews belong to the active dataset.
+7. Export tests should verify content and ownership boundaries.
+8. Public deployment does not require a specialized release-gate workflow, production smoke-test suite, dedicated health endpoint, security-scanning platform, or advanced deployment strategy unless the team chooses to add one.
 
 ## Definition of Done Additions
 
 A Sprint 3 story is not complete until:
 
-1. The story outcome works in the deployed application when the behavior is production-facing.
-2. Required automated tests pass locally where applicable.
+1. The story outcome works in the running application.
+2. Required automated tests pass locally.
 3. Required automated tests pass in CI.
 4. Sprint 1 and Sprint 2 regression tests continue to pass.
-5. Deployment and post-deployment checks pass where applicable.
-6. The story does not knowingly weaken authentication, authorization, ownership, ingestion, Q&A grounding, or scope-guard behavior established previously.
-7. Production configuration does not expose protected secrets.
-8. The pull request contains a short `Test Evidence` section.
-9. Significant operational assumptions or limitations are documented.
-10. Another team member can determine how to diagnose a failed release or production verification check.
+5. Ownership and user-isolation rules remain intact.
+6. Q&A grounding and scope-guard behavior remain intact.
+7. The pull request contains useful test evidence.
+8. Production-facing functionality works from the public deployment when applicable.
 
 ---
 
-# Canonical Business Rules (Sprint 3)
+# Canonical Business Rules
 
-These rules are authoritative for Sprint 3 implementation and grading.
+## S3-BR Saved Analysis Lifecycle
 
-## S3-BR Production Deployment
+1. **S3-BR-001**: Every saved analysis must have a human-readable display name.
+2. **S3-BR-002**: Analysis names are user-editable and do not change the underlying source URL or review data.
+3. **S3-BR-003**: A returning authenticated user must be able to reopen their saved analyses.
+4. **S3-BR-004**: Saved analyses must remain isolated by authenticated owner.
+5. **S3-BR-005**: Save As must create a separate analysis identity rather than silently renaming the original.
+6. **S3-BR-006**: Future changes to a Save As copy must not mutate the original analysis.
+7. **S3-BR-007**: A user may delete only analyses they own.
+8. **S3-BR-008**: Deletion must handle associated ReviewLens data consistently according to the team's documented persistence design.
 
-1. **S3-BR-001**: The ReviewLens application must be deployed to a publicly reachable environment.
-2. **S3-BR-002**: Protected ReviewLens functionality must continue to require authentication in production.
-3. **S3-BR-003**: Production deployment must be initiated through the team's automated CI/CD process rather than requiring a developer to perform the normal release manually.
-4. **S3-BR-004**: Deployment must occur only after required CI quality gates succeed.
-5. **S3-BR-005**: A failing required quality gate must prevent the normal production deployment.
-6. **S3-BR-006**: A deployment failure must be visible to the team.
-7. **S3-BR-007**: A hosting provider reporting deployment success is not by itself sufficient evidence that the application is operational.
+## S3-BR Q&A History
 
-## S3-BR Production Configuration and Secrets
+1. **S3-BR-009**: Questions and ReviewLens responses may be persisted as part of an analysis.
+2. **S3-BR-010**: Persisted Q&A history must remain associated with the correct AnalysisTarget.
+3. **S3-BR-011**: Reopening an analysis must restore its persisted Q&A history when history exists.
+4. **S3-BR-012**: Clearing Q&A history must not delete the AnalysisTarget or its review dataset.
+5. **S3-BR-013**: Q&A history from one analysis must not appear under another analysis.
 
-1. **S3-BR-008**: Production secrets must not be committed to source control.
-2. **S3-BR-009**: Server-side credentials must not be exposed in browser-delivered application code.
-3. **S3-BR-010**: Development, test, and production configuration must be separable without modifying application source code for every deployment.
-4. **S3-BR-011**: Missing or invalid critical production configuration must produce a detectable failure.
-5. **S3-BR-012**: Authentication provider, database, LLM provider, ingestion service, and other external-service credentials must follow the security mechanisms appropriate to the selected service.
+## S3-BR Re-Ingestion and Refresh
 
-## S3-BR Production Reliability
+1. **S3-BR-014**: A user may refresh or re-ingest an existing owned analysis.
+2. **S3-BR-015**: The application must clearly identify which successful review dataset is current.
+3. **S3-BR-016**: A failed refresh must not destroy the last known-good review dataset.
+4. **S3-BR-017**: Re-ingestion must not silently create duplicate review records representing the same source review.
+5. **S3-BR-018**: The team's duplicate strategy must be deterministic and testable.
+6. **S3-BR-019**: A successful refresh must update the ingestion summary to represent the new current dataset.
 
-1. **S3-BR-013**: Failure of an external review source or ingestion service must not cause ReviewLens to silently fabricate successful ingestion.
-2. **S3-BR-014**: Failure of the LLM service must produce an understandable application error rather than fabricated analysis.
-3. **S3-BR-015**: User-visible production errors must not expose protected secrets or unnecessary sensitive internal details.
-4. **S3-BR-016**: Existing valid persisted review data must not be silently destroyed because a later external operation fails.
-5. **S3-BR-017**: Application logs should contain enough operational information to diagnose important failures without logging protected secrets.
+## S3-BR Evidence and Review Exploration
 
-## S3-BR Post-Deployment Verification
+1. **S3-BR-020**: Grounded Q&A answers must be able to present supporting evidence from the active review dataset.
+2. **S3-BR-021**: Supporting evidence must refer only to reviews belonging to the active AnalysisTarget.
+3. **S3-BR-022**: Supporting evidence must not fabricate review text or reviewer metadata.
+4. **S3-BR-023**: The user must be able to inspect more than the small ingestion-preview sample.
+5. **S3-BR-024**: Review filtering must operate on the active AnalysisTarget's persisted review data.
+6. **S3-BR-025**: ReviewLens must not present a numerical confidence score unless the team has a defensible and documented method for calculating it.
 
-1. **S3-BR-018**: Every production deployment must be followed by an automated health verification.
-2. **S3-BR-019**: Sprint 3 must include automated smoke tests of critical production behavior.
-3. **S3-BR-020**: A failed required post-deployment verification must be visible as a failed release workflow or equivalent release failure.
-4. **S3-BR-021**: Smoke tests should verify behavior against the deployed application rather than only retesting isolated local components.
-5. **S3-BR-022**: Smoke tests must be designed so repeated execution does not corrupt production data.
+## S3-BR Export
 
-## S3-BR Schema and Migration Safety
+1. **S3-BR-026**: A user may export only data belonging to analyses they own.
+2. **S3-BR-027**: CSV export must represent the active persisted review dataset.
+3. **S3-BR-028**: Markdown export must provide a human-readable representation of the saved analysis.
+4. **S3-BR-029**: Exported files must use meaningful filenames.
+5. **S3-BR-030**: Export content must not silently include another user's review or Q&A data.
 
-1. **S3-BR-023**: Persistent-storage schema changes required by a release must be represented in repeatable migration or schema-management artifacts where the selected technology requires them.
-2. **S3-BR-024**: Required schema changes must be verified as part of the release process.
-3. **S3-BR-025**: A release must not be considered successful if the deployed application is incompatible with the production persistence schema.
+## S3-BR Public Delivery
 
-## S3-BR Security Verification
-
-1. **S3-BR-026**: Production continues to enforce all Sprint 1 user-ownership and cross-user isolation rules.
-2. **S3-BR-027**: Production Q&A continues to enforce all Sprint 2 active-dataset and cross-user AI-context rules.
-3. **S3-BR-028**: The project must include automated dependency or security scanning appropriate to the team's selected technology stack.
-4. **S3-BR-029**: Known security findings discovered by required scanning must be reviewed rather than ignored solely to make the pipeline green.
-5. **S3-BR-030**: Teams should document accepted significant security findings when immediate remediation is not practical.
-
-## S3-BR Production Application Lifecycle
-
-1. **S3-BR-031**: A returning authenticated user must be able to reopen persisted AnalysisTargets created during an earlier session.
-2. **S3-BR-032**: A user may delete only AnalysisTargets they own.
-3. **S3-BR-033**: Deleting an AnalysisTarget must handle associated ReviewLens data consistently according to the team's documented persistence design.
-4. **S3-BR-034**: If the team supports re-ingestion, the application must distinguish the result of the new ingestion attempt from earlier ingestion state sufficiently to avoid misleading the user.
-5. **S3-BR-035**: Sophisticated historical comparison of ingestion datasets is not required.
-
-## Rule Usage in Stories and Jira
-
-1. Any Sprint 3 story may reference one or more S3-BR IDs instead of repeating the complete rule text.
-2. Sprint 1 and Sprint 2 canonical business rules remain applicable where relevant.
-3. If story behavior conflicts with a canonical business rule, the canonical business rule prevails.
-4. A developer implementing a story is responsible for understanding all rules referenced by that story.
+1. **S3-BR-031**: ReviewLens must be reachable at a public web URL for the final demonstration.
+2. **S3-BR-032**: The public deployment must preserve authentication, ownership, ingestion, Q&A grounding, scope guards, saved-analysis behavior, and export functionality.
+3. **S3-BR-033**: Production secrets must not be committed to source control or exposed to browser-delivered code.
+4. **S3-BR-034**: A normal managed-platform deployment is sufficient. Specialized production operations infrastructure is not required.
 
 ---
 
-# A. Sprint 3 Deployment and Reliability Baseline
+# A. Saved Analysis Lifecycle
 
-These are primarily team-level engineering stories.
+## S3-001 - Name and Save an Analysis
 
-## S3-001 - Add Automated Production Deployment
-
-**Outcome:**  
-An approved change merged through the team's protected release workflow automatically deploys ReviewLens to the team's production environment.
+**Outcome:**
+A user can save an analysis with a short human-readable name that is shown in the analysis sidebar.
 
 **Technical Guidance:**
 
-The team may choose an appropriate hosting and deployment platform.
+The display name should be independent of the full review-source URL.
 
-Examples include:
+The application may suggest an initial name based on the detected entity or source, but the user must be able to choose a meaningful name.
 
-1. AWS.
-2. Azure.
-3. Google Cloud.
-4. Vercel.
-5. Netlify.
-6. Render.
-7. Railway.
-8. Fly.io.
-9. Supabase-hosted components.
-10. Another instructor-approved platform.
+The saved record should preserve at least:
 
-The normal production deployment must be reproducible from committed repository configuration.
+1. Analysis name.
+2. Owner.
+3. Source URL or source reference.
+4. AnalysisTarget identity.
+5. Current review dataset association.
 
-A developer should not need to:
+**Rules:** S3-BR-001 through S3-BR-004
 
-1. Copy application files manually to a server.
-2. Run an undocumented sequence of production commands from a laptop.
-3. Change application source code to identify the production environment.
+## S3-002 - Rename a Saved Analysis
 
-The pipeline should make it clear:
-
-1. What commit is being deployed.
-2. Whether deployment succeeded or failed.
-3. Which environment received the deployment.
-
-**Rules:** S3-BR-001 through S3-BR-007
-
-## S3-002 - Add Post-Deployment Health Verification
-
-**Outcome:**  
-Every production deployment automatically verifies that the deployed ReviewLens application is reachable and operational.
+**Outcome:**
+A user can rename an analysis they own without changing its review source, review dataset, or Q&A data.
 
 **Technical Guidance:**
 
-The health verification should test more than whether the deployment command completed.
+Rename should update only the user-facing analysis name.
 
-At minimum, it should verify an application endpoint that demonstrates the deployed application can respond successfully.
+Validation should reject empty or otherwise unusable names.
 
-Teams may implement:
+Another user must not be able to rename the analysis.
 
-1. Dedicated health endpoint.
-2. Readiness endpoint.
-3. Lightweight application request.
-4. Equivalent production-health mechanism.
+**Rules:** S3-BR-001 through S3-BR-004
 
-A useful health check may validate critical dependencies such as database connectivity, but teams should avoid making the health endpoint unnecessarily expensive or exposing sensitive details.
+## S3-003 - Save As a Separate Analysis
 
-The health check must produce a non-success result when the deployed application is not operational.
-
-**Rules:** S3-BR-007, S3-BR-018 through S3-BR-021
-
-## S3-003 - Add Production Smoke Test Suite
-
-**Outcome:**  
-The deployment pipeline can run a small automated suite against the deployed ReviewLens environment to verify critical production behavior.
+**Outcome:**
+A user can create a separate saved analysis based on the current analysis and assign the copy a new name.
 
 **Technical Guidance:**
 
-The smoke suite should be deliberately smaller than the full automated test suite.
+Save As must create a new analysis identity.
 
-It should verify representative critical behavior such as:
+The new analysis should begin with the current saved state of the source analysis, including the current persisted review dataset.
 
-1. Application availability.
-2. Protected-route enforcement.
-3. Access to a controlled user-owned AnalysisTarget.
-4. Access to persisted review data or controlled ingestion behavior.
+If Q&A history is already implemented, the team may copy or omit the history, but the chosen behavior must be clear and consistent.
+
+After Save As:
+
+1. Renaming the copy does not rename the original.
+2. Deleting the copy does not delete the original.
+3. Refreshing/re-ingesting the copy does not mutate the original.
+
+**Rules:** S3-BR-005, S3-BR-006
+
+## S3-004 - Reopen a Saved Analysis
+
+**Outcome:**
+A returning authenticated user can reopen an analysis created during an earlier session.
+
+**Technical Guidance:**
+
+Reopening should restore the current ReviewLens workspace for that analysis.
+
+At minimum, restore:
+
+1. Analysis name.
+2. Source/entity context.
+3. Current ingestion state.
+4. Current persisted review dataset.
 5. Ingestion summary.
-6. Review Q&A.
-7. Scope-guard behavior.
 
-Teams may use a dedicated test account and controlled production test data.
+Persisted Q&A history is addressed separately.
 
-The smoke tests must be safe to execute repeatedly.
+**Rules:** S3-BR-003, S3-BR-004
 
-Do not run destructive tests against arbitrary real user data.
+## S3-005 - Delete an Owned Analysis
 
-**Rules:** S3-BR-018 through S3-BR-022, S3-BR-026, S3-BR-027
-
-## S3-004 - Add Dependency and Security Scanning
-
-**Outcome:**  
-The CI pipeline automatically checks the project's dependencies or application artifacts for known security issues appropriate to the selected technology stack.
+**Outcome:**
+A user can delete an analysis they own.
 
 **Technical Guidance:**
 
-Possible approaches include:
+The UI should clearly communicate destructive intent and request confirmation.
 
-1. Package-manager vulnerability scanning.
-2. GitHub dependency scanning.
-3. Dependabot or equivalent.
-4. Static application security analysis.
-5. Container image scanning.
-6. Secret scanning.
-7. Equivalent platform-supported security tools.
-
-Teams do not need to implement every category.
-
-The selected checks should be meaningful for the actual project.
-
-The team should be able to explain:
-
-1. What is scanned.
-2. When scanning runs.
-3. What causes a build or release failure.
-4. How significant findings are reviewed.
-
-Simply enabling a scanner without reviewing its results does not satisfy the intent of the story.
-
-**Rules:** S3-BR-028 through S3-BR-030
-
----
-
-# B. Production Configuration and Failure Handling
-
-## S3-005 - Configure Production Environment and Secrets
-
-**Outcome:**  
-The deployed ReviewLens application receives production configuration and protected credentials without embedding secrets in source control or browser-delivered code.
-
-**Technical Guidance:**
-
-The production environment may require configuration for:
-
-1. Authentication provider.
-2. Database.
-3. LLM provider.
-4. Review ingestion service.
-5. Application URLs.
-6. Logging or monitoring.
-7. Other team-selected services.
-
-The repository should document required configuration names without containing actual protected values.
-
-Teams should understand the difference between:
-
-1. Values intentionally safe for client-side use.
-2. Server-side secrets that must remain protected.
-
-A missing critical configuration value should produce a clear operational failure rather than unpredictable application behavior.
-
-**Rules:** S3-BR-008 through S3-BR-012
-
-## S3-006 - Separate Development, Test, and Production Configuration
-
-**Outcome:**  
-ReviewLens can run in development, automated testing, and production environments using environment-appropriate configuration without requiring source-code modification.
-
-**Technical Guidance:**
-
-For example:
-
-- Development may use local services or developer credentials.
-- Automated tests may use mocks or isolated test storage.
-- Production uses protected hosted services.
-
-The exact mechanism is team-defined.
-
-Acceptable approaches include:
-
-1. Environment variables.
-2. Hosting-provider environment configuration.
-3. Managed secret stores.
-4. Configuration services.
-5. Equivalent mechanisms.
-
-Avoid logic such as manually editing source files before a production release.
-
-Tests or startup validation should catch missing required configuration where practical.
-
-**Rules:** S3-BR-008 through S3-BR-012
-
-## S3-007 - Handle Review Ingestion Service Failure
-
-**Outcome:**  
-When the production review source, scraper, API, or ingestion dependency fails, ReviewLens reports the failure clearly without corrupting or fabricating review data.
-
-**Technical Guidance:**
-
-Representative failure cases may include:
-
-1. Source unavailable.
-2. Request timeout.
-3. Rate limiting.
-4. Changed source format.
-5. Third-party API failure.
-6. Authentication failure against an ingestion service.
-7. Unexpected source response.
-
-The exact failures depend on the team's ingestion architecture.
-
-The application should:
-
-1. Preserve previously valid persisted data.
-2. Record the ingestion attempt as unsuccessful where appropriate.
-3. Present useful user-facing failure information.
-4. Log useful diagnostic information.
-5. Avoid exposing secrets or raw credentials.
-
-Automated tests should simulate at least one external ingestion failure.
-
-**Rules:** S3-BR-013, S3-BR-015 through S3-BR-017
-
-## S3-008 - Handle LLM Service Failure
-
-**Outcome:**  
-When the production LLM provider is unavailable or returns an unusable result, ReviewLens provides a meaningful failure state rather than fabricated analysis.
-
-**Technical Guidance:**
-
-Representative failures include:
-
-1. Provider timeout.
-2. Rate limit.
-3. Provider authentication failure.
-4. Service outage.
-5. Invalid or malformed provider response.
-
-The application should distinguish service failure from a legitimate ReviewLens refusal such as:
-
-> The active reviews do not contain enough evidence to answer that question.
-
-Those are different behaviors.
-
-Tests should mock or simulate provider failure rather than relying on the provider actually becoming unavailable.
-
-**Rules:** S3-BR-014 through S3-BR-017
-
----
-
-# C. AnalysisTarget Production Lifecycle
-
-## S3-009 - Reopen a Persisted AnalysisTarget
-
-**Outcome:**  
-A returning authenticated user can reopen an AnalysisTarget created during a previous session and access its persisted ReviewLens data.
-
-**Technical Guidance:**
-
-The user should be able to:
-
-1. Authenticate in a later session.
-2. View their existing AnalysisTargets.
-3. Open a target.
-4. View its ingestion state.
-5. View its ingestion summary when data exists.
-6. Continue using Q&A against its persisted review dataset.
-
-The application should not require re-ingestion simply because the browser session ended.
-
-Automated tests should verify persistence independently of transient frontend state.
-
-**Rules:** S3-BR-031 and all applicable Sprint 1 and Sprint 2 ownership rules
-
-## S3-010 - Delete an AnalysisTarget
-
-**Outcome:**  
-An authenticated user can delete an AnalysisTarget they own.
-
-**Technical Guidance:**
-
-The UI should make destructive intent clear.
-
-The team must decide and document how associated data is handled.
+The team must define how associated records are handled.
 
 Possible designs include:
 
-1. Cascading deletion of reviews and ingestion records.
+1. Cascading deletion.
 2. Soft deletion.
-3. Another consistent persistence strategy.
+3. Another consistent documented strategy.
 
-The implementation should not leave data in a state that violates referential integrity or allows deleted targets to remain normally accessible.
+Tests must verify:
 
-Tests should verify:
+1. Owner can delete the analysis.
+2. Deleted analysis no longer appears in normal retrieval.
+3. Another user cannot delete the analysis.
 
-1. Owner can delete the target.
-2. Deleted target no longer appears in normal retrieval.
-3. Associated data follows the documented deletion behavior.
-
-**Rules:** S3-BR-032, S3-BR-033
-
-## S3-011 - Prevent Cross-User Target Deletion
-
-**Outcome:**  
-An authenticated user cannot delete an AnalysisTarget owned by another user.
-
-**Technical Guidance:**
-
-This must be enforced by the backend or persistence authorization layer.
-
-A frontend-hidden delete button is not sufficient.
-
-The test should use two authenticated identities:
-
-1. User A owns Target A.
-2. User B submits a delete operation against Target A.
-3. The operation is denied.
-4. Target A and its associated data remain intact.
-
-This story intentionally repeats the security principle established in Sprint 1 because destructive production operations deserve explicit verification.
-
-**Rules:** S3-BR-026, S3-BR-032
-
-## S3-012 - Re-Ingest an Existing AnalysisTarget
-
-**Outcome:**  
-If the team supports re-ingestion, a user can initiate another ingestion operation for an existing AnalysisTarget and distinguish the new result from the previous ingestion state.
-
-**Technical Guidance:**
-
-The team must define how re-ingestion affects existing reviews.
-
-Possible strategies include:
-
-1. Replace the current review dataset.
-2. Merge newly collected reviews.
-3. Preserve ingestion-run history.
-4. Another documented strategy.
-
-Sophisticated historical comparison is not required.
-
-The important requirements are:
-
-1. The behavior is explicit.
-2. The user is not misled about which dataset is current.
-3. A failed re-ingestion does not silently destroy a previously valid dataset.
-4. Duplicate handling follows the team's documented strategy.
-
-If a team deliberately does not support re-ingestion, the instructor may approve an equivalent production-lifecycle story.
-
-**Rules:** S3-BR-013, S3-BR-016, S3-BR-034, S3-BR-035
+**Rules:** S3-BR-007, S3-BR-008
 
 ---
 
-# D. Deployment Safety and Persistence Verification
+# B. Persistent Q&A History
 
-## S3-013 - Prevent Deployment When Required Quality Gates Fail
+## S3-006 - Persist Questions and ReviewLens Responses
 
-**Outcome:**  
-A change that fails a required build, test, coverage, AI guardrail, integration, or security gate cannot proceed through the normal production deployment workflow.
-
-**Technical Guidance:**
-
-The team should be able to demonstrate this behavior safely.
-
-For example:
-
-1. Introduce or identify a deliberately failing test on a branch.
-2. Show CI failure.
-3. Show that the production deployment step is not executed.
-
-The protected release workflow should enforce the dependency between verification and deployment.
-
-Simply having separate test and deployment jobs that can run independently does not satisfy the requirement.
-
-**Rules:** S3-BR-003 through S3-BR-005
-
-## S3-014 - Surface Deployment Failure
-
-**Outcome:**  
-When the deployment platform reports a failed release, the CI/CD workflow clearly reports that failure to the team.
+**Outcome:**
+Questions and ReviewLens responses can be stored as part of the saved analysis.
 
 **Technical Guidance:**
 
-The pipeline should not mark the overall release successful when the production deployment failed.
+Persist enough information to reconstruct the user-visible analysis history.
 
-The team should be able to identify:
+At minimum, consider:
 
-1. Which deployment failed.
-2. Which commit was involved.
-3. Which pipeline stage failed.
-4. Where diagnostic information can be found.
+1. Question text.
+2. ReviewLens response.
+3. Creation timestamp.
+4. AnalysisTarget association.
 
-Teams are not required to implement automated rollback unless they choose to do so.
+If supporting evidence is persisted with the response, retain stable references where practical rather than duplicating large amounts of review text unnecessarily.
 
-The important requirement is accurate operational visibility.
+**Rules:** S3-BR-009, S3-BR-010
 
-**Rules:** S3-BR-006, S3-BR-007, S3-BR-020
+## S3-007 - Restore Q&A History When Reopening an Analysis
 
-## S3-015 - Verify Database Schema or Migration Compatibility
-
-**Outcome:**  
-When a release includes persistent-storage schema changes, the release process verifies that the production application and schema are compatible.
+**Outcome:**
+When a user reopens a saved analysis, its persisted Q&A history is restored in the correct order.
 
 **Technical Guidance:**
 
-The exact implementation depends heavily on the selected persistence technology.
+History must belong to the active analysis.
 
-For relational databases, this may involve:
+Switching analyses must replace the visible history with the newly selected analysis's history.
 
-1. Versioned migrations.
-2. Migration execution during deployment.
-3. Migration validation.
+Tests should use clearly distinguishable questions across multiple AnalysisTargets.
 
-For managed or schema-flexible storage, the team should implement the equivalent verification appropriate to that platform.
+**Rules:** S3-BR-010, S3-BR-011, S3-BR-013
 
-The important requirements are:
+## S3-008 - Clear Q&A History
 
-1. Schema changes are repeatable.
-2. The production release does not depend on an undocumented manual database edit.
-3. Failure is visible.
-4. The application is not reported healthy when it cannot operate against the resulting persistence structure.
+**Outcome:**
+A user can clear the Q&A history for an analysis without deleting the analysis or its review dataset.
 
-If the team makes no Sprint 3 schema changes, it should still document the migration mechanism that would be used for future changes and demonstrate that the current schema is production compatible.
+**Technical Guidance:**
 
-**Rules:** S3-BR-023 through S3-BR-025
+The UI should clearly distinguish:
+
+- Clear Q&A History
+- Delete Analysis
+
+Clearing history must not remove:
+
+1. AnalysisTarget.
+2. Source URL.
+3. Persisted reviews.
+4. Ingestion summary.
+
+**Rules:** S3-BR-012
 
 ---
 
-# E. Production Verification and Complete ReviewLens Workflow
+# C. Review Refresh and Re-Ingestion
 
-## S3-016 - Smoke Test Authentication and Protected Access
+## S3-009 - Re-Ingest an Existing Analysis
 
-**Outcome:**  
-Automated post-deployment verification confirms that the production application enforces authentication and protected access.
-
-**Technical Guidance:**
-
-The smoke test may verify a combination of:
-
-1. Public landing page is reachable.
-2. Protected endpoint rejects unauthenticated access.
-3. Controlled authenticated test identity can access an authorized resource.
-
-Teams should avoid making smoke tests dependent on manual MFA or other interactive authentication steps that cannot reasonably be automated.
-
-The exact authentication test mechanism should be consistent with the managed identity provider's supported practices.
-
-**Rules:** S3-BR-002, S3-BR-018 through S3-BR-022, S3-BR-026
-
-## S3-017 - Smoke Test Review Data and Ingestion Summary
-
-**Outcome:**  
-Automated post-deployment verification confirms that production ReviewLens can access a controlled review dataset and produce its expected ingestion summary.
+**Outcome:**
+A user can initiate a new ingestion operation for an existing owned analysis.
 
 **Technical Guidance:**
 
-The smoke test may use:
+The user should not need to create a second AnalysisTarget merely to obtain newer review data.
 
-1. A dedicated production test target.
-2. A controlled persisted fixture.
-3. A safe repeatable ingestion source.
-4. Another production-safe approach.
+The application should record enough ingestion state to distinguish the new attempt from the previously successful dataset.
 
-The test should verify at least:
+**Rules:** S3-BR-014, S3-BR-015
 
-1. Target can be accessed.
-2. Review data exists or can be obtained.
-3. Summary endpoint or workflow succeeds.
-4. Summary contains plausible expected values.
+## S3-010 - Promote a Successful Refresh to the Current Dataset
 
-Avoid depending on a third-party public site changing in a specific way during every deployment if a more deterministic production verification approach is available.
-
-**Rules:** S3-BR-018 through S3-BR-022 and applicable Sprint 2 summary rules
-
-## S3-018 - Smoke Test Review-Grounded Q&A
-
-**Outcome:**  
-Automated post-deployment verification confirms that the production ReviewLens Q&A path can successfully process an in-scope question against a controlled review dataset.
+**Outcome:**
+After successful re-ingestion, ReviewLens clearly treats the resulting review dataset as the current dataset for summary, browsing, Q&A, and export.
 
 **Technical Guidance:**
 
-The smoke test does not need to assert one exact natural-language answer.
+The implementation may replace or reconcile existing review records, but current-dataset semantics must be unambiguous.
 
-It should verify behavior such as:
+After successful refresh:
 
-1. Request succeeds.
-2. ReviewLens processes the intended AnalysisTarget.
-3. Response is non-empty.
-4. Response does not indicate an unexpected system failure.
+1. Ingestion summary reflects the current data.
+2. Review browsing reflects the current data.
+3. Q&A uses the current data.
+4. Export uses the current data.
 
-If live-model variability makes semantic validation difficult, the team should choose a modest but defensible production assertion while relying on Sprint 2 deterministic tests for deeper behavior verification.
+**Rules:** S3-BR-015, S3-BR-019
 
-The smoke test should not replace the Sprint 2 Q&A test harness.
+## S3-011 - Prevent Duplicate Reviews During Re-Ingestion
 
-**Rules:** S3-BR-018 through S3-BR-022, S3-BR-027
-
-## S3-019 - Smoke Test Production Scope Guard
-
-**Outcome:**  
-Automated post-deployment verification confirms that the deployed ReviewLens application still rejects a representative out-of-scope question.
+**Outcome:**
+Refreshing an analysis does not silently create duplicate Review records for the same source review.
 
 **Technical Guidance:**
 
-Use a stable representative question such as an unrelated general-knowledge request.
+Prefer stable source review identifiers when available.
 
-The test should verify the behavioral outcome rather than one exact sentence.
+When a source does not provide stable identifiers, the team may use another deterministic strategy such as a normalized fingerprint derived from stable review attributes.
 
-This test exists because production configuration, model changes, prompt deployment mistakes, or environment differences can break behavior that passed deterministic local tests.
+The duplicate strategy should be documented and automatically tested.
 
-A successful application deployment with a missing or incorrect system prompt is not a successful ReviewLens release.
+**Rules:** S3-BR-017, S3-BR-018
 
-**Rules:** S3-BR-018 through S3-BR-022, S3-BR-027 and applicable Sprint 2 scope-guard rules
+## S3-012 - Preserve Last Known-Good Data When Refresh Fails
 
-## S3-020 - Verify Complete Multi-User Production Workflow
-
-**Outcome:**  
-The publicly deployed application supports the complete ReviewLens workflow while preserving authenticated user isolation.
+**Outcome:**
+If re-ingestion fails, the previously successful review dataset remains available and remains the current usable dataset.
 
 **Technical Guidance:**
 
-The team should demonstrate the deployed system with at least two distinct users.
+A failed refresh should record a failed ingestion attempt without replacing valid persisted review data with an empty or partial accidental result.
 
-A representative workflow is:
+The user should receive a meaningful failure state.
 
-### User A
-
-1. Authenticate.
-2. Create or reopen an AnalysisTarget.
-3. Ingest or access persisted reviews.
-4. View the ingestion result summary.
-5. Ask an in-scope review question.
-6. Receive a grounded answer.
-7. Ask an out-of-scope question.
-8. Receive a ReviewLens scope refusal.
-9. Log out.
-
-### User B
-
-1. Authenticate separately.
-2. View only User B's AnalysisTargets.
-3. Attempt to access User A's target or review resource.
-4. Receive an authorization failure.
-5. Ask Q&A against User B's own dataset without User A's review content entering the AI context.
-
-This story is the final integration point for the capstone.
-
-It does not replace the automated tests attached to the underlying stories. It demonstrates that those independently implemented capabilities function together as a production system.
-
-**Rules:** S3-BR-001 through S3-BR-035 and all applicable Sprint 1 and Sprint 2 rules
+**Rules:** S3-BR-016
 
 ---
 
-# Sprint 3 Demo Expectations
+# D. Evidence and Review Exploration
 
-The team has approximately 15 minutes to demonstrate the final ReviewLens increment.
+## S3-013 - Show Supporting Evidence with Grounded Answers
 
-The Sprint 3 demo should emphasize that ReviewLens has become a **production software system**, not merely that the team found a hosting provider.
+**Outcome:**
+A grounded ReviewLens answer displays representative review evidence supporting the analysis.
 
-A recommended demonstration flow is:
+**Technical Guidance:**
 
-1. Show the production URL.
-2. Briefly show the release pipeline and required quality gates.
-3. Show that deployment occurs only after required checks pass.
-4. Show the most recent successful deployment and post-deployment verification.
-5. Authenticate into the deployed application as User A.
-6. Reopen or create an AnalysisTarget.
-7. Show persisted or newly ingested review data.
-8. Show the ingestion result summary.
-9. Ask an in-scope question and show a grounded response.
-10. Ask an out-of-scope question and show the scope guard.
-11. Log in as User B or otherwise demonstrate a second authenticated identity.
-12. Demonstrate that User B cannot access User A's data.
-13. Briefly show representative production smoke tests.
-14. Briefly show security/dependency scanning.
-15. Discuss one production failure mode and how the application handles it.
+Supporting evidence should come from the active persisted review dataset.
 
-The team does not need to demonstrate every individual Jira story.
+A reasonable response may show two to five representative review excerpts.
 
-Every team member should be prepared to explain:
+The application should preserve enough identity information to verify that cited evidence corresponds to real persisted Review records.
 
-1. The stories they implemented.
-2. The automated tests supporting those stories.
-3. How their changes passed through CI.
-4. How their work behaves in the production environment.
-5. Important implementation or operational tradeoffs.
-6. One thing they would improve if the product continued beyond the capstone.
+Do not fabricate quotations or reviewer metadata.
+
+**Rules:** S3-BR-020 through S3-BR-022
+
+## S3-014 - View Matching or Supporting Reviews
+
+**Outcome:**
+A user can inspect the larger set of reviews identified as relevant to a grounded answer when such a set exists.
+
+**Technical Guidance:**
+
+The exact implementation depends on the team's Q&A context strategy.
+
+Examples include:
+
+1. Reviews retrieved for the question.
+2. Reviews cited by a structured model response.
+3. Reviews selected by a search/ranking layer.
+
+The UI should clearly distinguish these from the complete review dataset.
+
+**Rules:** S3-BR-020 through S3-BR-024
+
+## S3-015 - Browse the Complete Review Dataset
+
+**Outcome:**
+A user can inspect the complete current persisted review dataset for the active analysis.
+
+**Technical Guidance:**
+
+A table, list, card view, or another coherent design is acceptable.
+
+At minimum, expose useful review information such as:
+
+1. Rating.
+2. Review text.
+3. Date when available.
+4. Reviewer/display name when available.
+
+Pagination or incremental loading is acceptable for larger datasets.
+
+**Rules:** S3-BR-023, S3-BR-024
+
+## S3-016 - Filter Reviews by Rating and Date
+
+**Outcome:**
+A user can narrow the active review dataset using useful filters.
+
+**Technical Guidance:**
+
+At minimum support:
+
+1. Rating filter.
+2. Date or date-range filter when source dates are available.
+
+Filtering should operate on the active persisted dataset and should not affect another user's data.
+
+The team may add search or other filters after the required behavior is complete.
+
+**Rules:** S3-BR-024
+
+---
+
+# E. Export
+
+## S3-017 - Export the Active Review Dataset to CSV
+
+**Outcome:**
+A user can download the active analysis's current persisted review dataset as CSV.
+
+**Technical Guidance:**
+
+Export useful fields that actually exist in the team's canonical Review model.
+
+Examples include:
+
+1. Rating.
+2. Review text.
+3. Review date.
+4. Reviewer/display name.
+5. Source review identifier.
+6. Source URL.
+
+Do not fabricate unavailable values merely to fill columns.
+
+**Rules:** S3-BR-026, S3-BR-027, S3-BR-030
+
+## S3-018 - Export the Analysis to Markdown
+
+**Outcome:**
+A user can download a human-readable Markdown representation of the saved analysis.
+
+**Technical Guidance:**
+
+The export should include useful context such as:
+
+1. Analysis name.
+2. Entity/source information.
+3. Ingestion summary.
+4. Q&A history when present.
+5. Supporting evidence when associated with persisted Q&A.
+
+The exact presentation is a team design decision.
+
+**Rules:** S3-BR-026, S3-BR-028, S3-BR-030
+
+## S3-019 - Use Meaningful Export Names and Metadata
+
+**Outcome:**
+Exported files are easy for a user to identify outside ReviewLens.
+
+**Technical Guidance:**
+
+Use filenames based on the analysis name and export type rather than generic names such as `export.csv`.
+
+Examples:
+
+- `blue-bottle-mint-plaza-reviews.csv`
+- `blue-bottle-mint-plaza-analysis.md`
+
+Include useful generated/exported timestamps or source metadata inside the exported content when appropriate.
+
+**Rules:** S3-BR-029
+
+---
+
+# F. Public Delivery
+
+## S3-020 - Deploy the Complete ReviewLens Application Publicly
+
+**Outcome:**
+The completed ReviewLens application is available at a stable public web URL for the final demonstration.
+
+**Technical Guidance:**
+
+A normal managed-platform deployment is sufficient.
+
+The public deployment must preserve:
+
+1. Authentication.
+2. User ownership and isolation.
+3. Saved-analysis lifecycle.
+4. Ingestion and refresh.
+5. Ingestion summary.
+6. Review browsing.
+7. Review-grounded Q&A.
+8. Scope guards.
+9. Q&A history.
+10. Export.
+
+Production secrets must be supplied through appropriate environment or platform configuration rather than committed to source control.
+
+Specialized production operations infrastructure is **not required**.
+
+Teams are not required to add:
+
+1. Kubernetes.
+2. Blue/green deployment.
+3. Canary deployment.
+4. Multi-region infrastructure.
+5. A dedicated production smoke-test suite.
+6. A custom health-check framework.
+7. A separate release-gate workflow.
+8. Advanced observability infrastructure.
+9. Automated rollback.
+10. A security-scanning platform beyond existing course/project expectations.
+
+**Rules:** S3-BR-031 through S3-BR-034
 
 ---
 
@@ -801,24 +566,19 @@ Every team member should be prepared to explain:
 The following functionality is not required for Sprint 3:
 
 1. Multiple review platforms.
-2. Enterprise-scale multi-region deployment.
-3. Kubernetes.
-4. Complex infrastructure solely for the purpose of demonstrating infrastructure complexity.
-5. Automated horizontal scaling.
-6. Full observability platforms with custom dashboards.
-7. Automated rollback.
-8. Blue/green deployment.
-9. Canary deployment.
-10. Disaster-recovery environments.
-11. Multi-region database replication.
-12. Enterprise Single Sign-On.
-13. Team or organization accounts.
-14. Administrator portals.
-15. Sophisticated historical ingestion comparison.
-16. Advanced analytics dashboards.
-17. Long-term conversational memory.
-18. Fine-tuned or custom-trained language models.
+2. Public sharing of analyses.
+3. Collaboration between users.
+4. Organization/team accounts.
+5. General-purpose AI chat.
+6. Advanced analytics dashboards.
+7. Sentiment-analysis pipelines beyond the Q&A experience.
+8. Fine-tuned or custom-trained models.
+9. A required vector database or RAG framework.
+10. Numerical AI confidence scoring without a defensible methodology.
+11. PDF report generation.
+12. Enterprise-scale production infrastructure.
+13. Advanced deployment strategies.
+14. Full observability platforms.
+15. Complex historical comparison of multiple ingestion runs.
 
-Teams may implement additional capabilities after all required Sprint 3 behavior is working, tested, deployed, and verified.
-
-The objective is a **small production-quality system with disciplined engineering practices**, not an unnecessarily complex infrastructure project.
+Teams should prioritize finishing the ReviewLens product experience, preserving correctness, and delivering the completed application at a public URL.
