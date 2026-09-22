@@ -47,11 +47,13 @@ export function ReviewDatasetDialog({
 }: ReviewDatasetDialogProps) {
   const [offset, setOffset] = useState(0)
   const [minRating, setMinRating] = useState('')
+  const [maxRating, setMaxRating] = useState('')
   const [after, setAfter] = useState('')
   const [before, setBefore] = useState('')
 
   const filters: ReviewFilters = {
     minRating: minRating ? Number(minRating) : undefined,
+    maxRating: maxRating ? Number(maxRating) : undefined,
     reviewedAfter: toStartOfDay(after),
     reviewedBefore: toEndOfDay(before),
   }
@@ -74,9 +76,9 @@ export function ReviewDatasetDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <div className="grid gap-2">
-            <Label htmlFor="min-rating">Minimum rating</Label>
+            <Label htmlFor="min-rating">At least</Label>
             <select
               id="min-rating"
               value={minRating}
@@ -84,11 +86,27 @@ export function ReviewDatasetDialog({
               className="h-10 rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">Any rating</option>
+              <option value="1">1 star</option>
+              <option value="2">2 stars</option>
+              <option value="3">3 stars</option>
+              <option value="4">4 stars</option>
               <option value="5">5 stars</option>
-              <option value="4">4+ stars</option>
-              <option value="3">3+ stars</option>
-              <option value="2">2+ stars</option>
-              <option value="1">1+ stars</option>
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="max-rating">At most</Label>
+            <select
+              id="max-rating"
+              value={maxRating}
+              onChange={(event) => resetAnd(setMaxRating, event.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">Any rating</option>
+              <option value="1">1 star</option>
+              <option value="2">2 stars</option>
+              <option value="3">3 stars</option>
+              <option value="4">4 stars</option>
+              <option value="5">5 stars</option>
             </select>
           </div>
           <div className="grid gap-2">
