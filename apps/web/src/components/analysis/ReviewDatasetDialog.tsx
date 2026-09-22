@@ -25,7 +25,8 @@ import {
 import { useTargetReviews } from '@/hooks/useAnalysis'
 import type { ReviewFilters } from '@/lib/api/types'
 
-const PAGE_SIZE = 25
+// Matches the backend's maximum page size, so browsing needs no pagination controls.
+const PAGE_SIZE = 200
 
 function toStartOfDay(value: string) {
   return value ? `${value}T00:00:00Z` : undefined
@@ -94,7 +95,6 @@ interface ReviewDatasetPanelProps {
 }
 
 function ReviewDatasetPanel({ targetId, applied, onApply, onCancel }: ReviewDatasetPanelProps) {
-  const [offset, setOffset] = useState(0)
   const [minRating, setMinRating] = useState(applied.minRating)
   const [maxRating, setMaxRating] = useState(applied.maxRating)
   const [after, setAfter] = useState(applied.after)
@@ -106,9 +106,7 @@ function ReviewDatasetPanel({ targetId, applied, onApply, onCancel }: ReviewData
     reviewedAfter: toStartOfDay(applied.after),
     reviewedBefore: toEndOfDay(applied.before),
   }
-  const reviews = useTargetReviews(targetId, PAGE_SIZE, offset, filters)
-  const canGoBack = offset > 0
-  const canGoForward = Boolean(reviews.data && offset + PAGE_SIZE < reviews.data.total)
+  const reviews = useTargetReviews(targetId, PAGE_SIZE, 0, filters)
 
   function handleApply(event: React.FormEvent) {
     event.preventDefault()
@@ -219,26 +217,6 @@ function ReviewDatasetPanel({ targetId, applied, onApply, onCancel }: ReviewData
             <p className="text-xs text-muted-foreground">
               Showing {reviews.data.items.length} of {reviews.data.total} reviews
             </p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!canGoBack}
-                onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-              >
-                Previous
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!canGoForward}
-                onClick={() => setOffset(offset + PAGE_SIZE)}
-              >
-                Next
-              </Button>
-            </div>
           </div>
         </div>
       ) : null}
