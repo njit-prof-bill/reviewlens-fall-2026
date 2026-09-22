@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -34,6 +35,15 @@ function toEndOfDay(value: string) {
   return value ? `${value}T23:59:59Z` : undefined
 }
 
+interface AppliedFilters {
+  minRating: string
+  maxRating: string
+  after: string
+  before: string
+}
+
+const EMPTY_FILTERS: AppliedFilters = { minRating: '', maxRating: '', after: '', before: '' }
+
 interface ReviewDatasetDialogProps {
   targetId: string
   open: boolean
@@ -45,26 +55,7 @@ export function ReviewDatasetDialog({
   open,
   onOpenChange,
 }: ReviewDatasetDialogProps) {
-  const [offset, setOffset] = useState(0)
-  const [minRating, setMinRating] = useState('')
-  const [maxRating, setMaxRating] = useState('')
-  const [after, setAfter] = useState('')
-  const [before, setBefore] = useState('')
-
-  const filters: ReviewFilters = {
-    minRating: minRating ? Number(minRating) : undefined,
-    maxRating: maxRating ? Number(maxRating) : undefined,
-    reviewedAfter: toStartOfDay(after),
-    reviewedBefore: toEndOfDay(before),
-  }
-  const reviews = useTargetReviews(targetId, PAGE_SIZE, offset, filters)
-  const canGoBack = offset > 0
-  const canGoForward = Boolean(reviews.data && offset + PAGE_SIZE < reviews.data.total)
-
-  function resetAnd(setter: (value: string) => void, value: string) {
-    setter(value)
-    setOffset(0)
-  }
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>(EMPTY_FILTERS)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,128 +68,189 @@ export function ReviewDatasetDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-4 sm:gap-x-6">
-          <div className="grid gap-2">
-            <Label htmlFor="min-rating">At least</Label>
-            <select
-              id="min-rating"
-              value={minRating}
-              onChange={(event) => resetAnd(setMinRating, event.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="">Any rating</option>
-              <option value="1">1 star</option>
-              <option value="2">2 stars</option>
-              <option value="3">3 stars</option>
-              <option value="4">4 stars</option>
-              <option value="5">5 stars</option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="max-rating">At most</Label>
-            <select
-              id="max-rating"
-              value={maxRating}
-              onChange={(event) => resetAnd(setMaxRating, event.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="">Any rating</option>
-              <option value="1">1 star</option>
-              <option value="2">2 stars</option>
-              <option value="3">3 stars</option>
-              <option value="4">4 stars</option>
-              <option value="5">5 stars</option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="reviewed-after">From</Label>
-            <Input
-              id="reviewed-after"
-              type="date"
-              value={after}
-              onChange={(event) => resetAnd(setAfter, event.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="reviewed-before">To</Label>
-            <Input
-              id="reviewed-before"
-              type="date"
-              value={before}
-              onChange={(event) => resetAnd(setBefore, event.target.value)}
-            />
-          </div>
-        </div>
-
-        {reviews.isPending ? (
-          <div className="space-y-3 py-4" aria-label="Loading reviews">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        ) : null}
-
-        {reviews.data ? (
-          <div className="space-y-3 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-20">Rating</TableHead>
-                  <TableHead className="w-32">Date</TableHead>
-                  <TableHead className="w-40">Reviewer</TableHead>
-                  <TableHead>Review</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reviews.data.items.map((review) => (
-                  <TableRow key={review.id}>
-                    <TableCell className="whitespace-nowrap font-medium tabular-nums">
-                      <span className="inline-flex items-center gap-1">
-                        <Star className="size-3.5 fill-current text-amber-500" />
-                        {review.rating.toFixed(1)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">
-                      {formatReviewDate(review.reviewed_at)}
-                    </TableCell>
-                    <TableCell className="truncate">
-                      {review.reviewer_name ?? 'Anonymous'}
-                    </TableCell>
-                    <TableCell className="min-w-96 text-muted-foreground">
-                      {review.review_text}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                Showing {reviews.data.items.length} of {reviews.data.total} reviews
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!canGoBack}
-                  onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-                >
-                  Previous
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!canGoForward}
-                  onClick={() => setOffset(offset + PAGE_SIZE)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </div>
+        {/* Remounting on open gives each session fresh pending edits without an effect. */}
+        {open ? (
+          <ReviewDatasetPanel
+            key={targetId}
+            targetId={targetId}
+            applied={appliedFilters}
+            onApply={(next) => {
+              setAppliedFilters(next)
+              onOpenChange(false)
+            }}
+            onCancel={() => onOpenChange(false)}
+          />
         ) : null}
       </DialogContent>
     </Dialog>
+  )
+}
+
+interface ReviewDatasetPanelProps {
+  targetId: string
+  applied: AppliedFilters
+  onApply: (next: AppliedFilters) => void
+  onCancel: () => void
+}
+
+function ReviewDatasetPanel({ targetId, applied, onApply, onCancel }: ReviewDatasetPanelProps) {
+  const [offset, setOffset] = useState(0)
+  const [minRating, setMinRating] = useState(applied.minRating)
+  const [maxRating, setMaxRating] = useState(applied.maxRating)
+  const [after, setAfter] = useState(applied.after)
+  const [before, setBefore] = useState(applied.before)
+
+  const filters: ReviewFilters = {
+    minRating: applied.minRating ? Number(applied.minRating) : undefined,
+    maxRating: applied.maxRating ? Number(applied.maxRating) : undefined,
+    reviewedAfter: toStartOfDay(applied.after),
+    reviewedBefore: toEndOfDay(applied.before),
+  }
+  const reviews = useTargetReviews(targetId, PAGE_SIZE, offset, filters)
+  const canGoBack = offset > 0
+  const canGoForward = Boolean(reviews.data && offset + PAGE_SIZE < reviews.data.total)
+
+  function handleApply(event: React.FormEvent) {
+    event.preventDefault()
+    onApply({ minRating, maxRating, after, before })
+  }
+
+  return (
+    <>
+      <form
+        id="review-dataset-filters"
+        onSubmit={handleApply}
+        className="grid gap-4 sm:grid-cols-4 sm:gap-x-6"
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="min-rating">At least</Label>
+          <select
+            id="min-rating"
+            value={minRating}
+            onChange={(event) => setMinRating(event.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Any rating</option>
+            <option value="1">1 star</option>
+            <option value="2">2 stars</option>
+            <option value="3">3 stars</option>
+            <option value="4">4 stars</option>
+            <option value="5">5 stars</option>
+          </select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="max-rating">At most</Label>
+          <select
+            id="max-rating"
+            value={maxRating}
+            onChange={(event) => setMaxRating(event.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Any rating</option>
+            <option value="1">1 star</option>
+            <option value="2">2 stars</option>
+            <option value="3">3 stars</option>
+            <option value="4">4 stars</option>
+            <option value="5">5 stars</option>
+          </select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="reviewed-after">From</Label>
+          <Input
+            id="reviewed-after"
+            type="date"
+            value={after}
+            onChange={(event) => setAfter(event.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="reviewed-before">To</Label>
+          <Input
+            id="reviewed-before"
+            type="date"
+            value={before}
+            onChange={(event) => setBefore(event.target.value)}
+          />
+        </div>
+      </form>
+
+      {reviews.isPending ? (
+        <div className="space-y-3 py-4" aria-label="Loading reviews">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ) : null}
+
+      {reviews.data ? (
+        <div className="space-y-3 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20">Rating</TableHead>
+                <TableHead className="w-32">Date</TableHead>
+                <TableHead className="w-40">Reviewer</TableHead>
+                <TableHead>Review</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reviews.data.items.map((review) => (
+                <TableRow key={review.id}>
+                  <TableCell className="whitespace-nowrap font-medium tabular-nums">
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="size-3.5 fill-current text-amber-500" />
+                      {review.rating.toFixed(1)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
+                    {formatReviewDate(review.reviewed_at)}
+                  </TableCell>
+                  <TableCell className="truncate">
+                    {review.reviewer_name ?? 'Anonymous'}
+                  </TableCell>
+                  <TableCell className="min-w-96 text-muted-foreground">
+                    {review.review_text}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Showing {reviews.data.items.length} of {reviews.data.total} reviews
+            </p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canGoBack}
+                onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+              >
+                Previous
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canGoForward}
+                onClick={() => setOffset(offset + PAGE_SIZE)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" form="review-dataset-filters">
+          OK
+        </Button>
+      </DialogFooter>
+    </>
   )
 }
