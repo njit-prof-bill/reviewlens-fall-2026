@@ -68,7 +68,8 @@ export function ReviewDatasetDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      {/* Base dialog defaults to sm:max-w-sm; override it explicitly or it wins over max-w-5xl. */}
+      <DialogContent className="max-w-5xl sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Review dataset</DialogTitle>
           <DialogDescription>
@@ -76,7 +77,7 @@ export function ReviewDatasetDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-4 sm:gap-x-6">
           <div className="grid gap-2">
             <Label htmlFor="min-rating">At least</Label>
             <select
