@@ -50,6 +50,23 @@ def _recorded_reviews():
     ]
 
 
+def _refreshed_reviews():
+    reviews = _recorded_reviews()
+    first = reviews[0]
+    reviews[0] = RawReview(
+        review_text="The pour over is still excellent after the remodel.",
+        rating=4,
+        reviewer_name=first.reviewer_name,
+        reviewed_at=first.reviewed_at,
+        source_review_id=first.source_review_id,
+    )
+    return reviews
+
+
+def _subset_refresh_reviews():
+    return _refreshed_reviews()[:2]
+
+
 def _create_target(client, name="Blue Bottle Coffee", source_url=VALID_URL):
     return client.post(
         "/api/v1/analysis-targets", json={"name": name, "source_url": source_url}
@@ -129,6 +146,35 @@ class TestUrlIngestion:
         )
         assert all(1.0 <= item["rating"] <= 5.0 for item in reviews["items"])
 
+    def test_reviews_can_be_filtered_by_rating(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        _use_provider(monkeypatch, StubProvider(_recorded_reviews()))
+        client = client_factory(user_a)
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        reviews = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/reviews?min_rating=5"
+        ).json()
+
+        assert reviews["total"] > 0
+        assert all(item["rating"] == 5.0 for item in reviews["items"])
+
+    def test_reviews_can_be_filtered_by_review_date(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        _use_provider(monkeypatch, StubProvider(_recorded_reviews()))
+        client = client_factory(user_a)
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        reviews = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/reviews"
+            "?reviewed_after=2026-06-01T00:00:00Z"
+        ).json()
+
+        assert reviews["total"] > 0
+        assert all(item["reviewed_at"] >= "2026-06-01" for item in reviews["items"])
+
     def test_reviews_stay_attached_to_their_own_target(
         self, client_factory, user_a, target_a, monkeypatch
     ):
@@ -146,6 +192,47 @@ class TestUrlIngestion:
         ).json()
 
         assert other_reviews["total"] == 0
+
+    def test_refresh_updates_existing_source_reviews_without_duplicates(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        _use_provider(monkeypatch, StubProvider(_recorded_reviews()))
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        _use_provider(monkeypatch, StubProvider(_refreshed_reviews()))
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        reviews = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/reviews"
+        ).json()
+        assert reviews["total"] == 4
+        texts = [item["review_text"] for item in reviews["items"]]
+        assert "The pour over is still excellent after the remodel." in texts
+        assert (
+            "The pour over here is consistently excellent and the staff remember regulars by name."
+            not in texts
+        )
+
+    def test_successful_refresh_promotes_the_new_current_dataset(
+        self, client_factory, user_a, target_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        _use_provider(monkeypatch, StubProvider(_recorded_reviews()))
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        _use_provider(monkeypatch, StubProvider(_subset_refresh_reviews()))
+        client.post(f"/api/v1/analysis-targets/{target_a['id']}/ingestions")
+
+        reviews = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/reviews"
+        ).json()
+        summary = client.get(
+            f"/api/v1/analysis-targets/{target_a['id']}/summary"
+        ).json()
+
+        assert reviews["total"] == 2
+        assert summary["reviews_collected"] == 2
 
     def test_a_partial_run_reports_both_counts(
         self, client_factory, user_a, target_a, monkeypatch

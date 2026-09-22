@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiError, apiFetch } from '@/lib/api/client'
+import { ApiError, apiDownload, apiFetch } from '@/lib/api/client'
 
 const getToken = async () => 'test-token'
 
@@ -85,6 +85,37 @@ describe('apiFetch', () => {
     mockResponse(404, { error: { code: 'not_found', message: 'Analysis target not found' } })
 
     const error = await expectApiError(apiFetch('/api/v1/analysis-targets/x', { getToken }))
+
+    expect(error.isNotFound).toBe(true)
+  })
+})
+
+describe('apiDownload', () => {
+  it('returns the raw response for a successful download', async () => {
+    const response = { ok: true, status: 200, headers: new Headers() }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
+
+    await expect(apiDownload('/api/v1/analysis-targets/1/exports/reviews.csv', getToken)).resolves.toBe(
+      response,
+    )
+  })
+
+  it('attaches the bearer token when one is available', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiDownload('/api/v1/analysis-targets/1/exports/reviews.csv', getToken)
+
+    const [, init] = fetchMock.mock.calls[0]
+    expect(init.headers.Authorization).toBe('Bearer test-token')
+  })
+
+  it('maps a failed download onto an ApiError', async () => {
+    mockResponse(404, { error: { code: 'not_found', message: 'Analysis target not found' } })
+
+    const error = await expectApiError(
+      apiDownload('/api/v1/analysis-targets/1/exports/reviews.csv', getToken),
+    )
 
     expect(error.isNotFound).toBe(true)
   })

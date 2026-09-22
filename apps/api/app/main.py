@@ -12,7 +12,12 @@ from app.errors import (
     ResourceNotFoundError,
     ServiceUnavailableError,
 )
-from app.routers import analysis_targets_router, ingestion_router, qa_router
+from app.routers import (
+    analysis_targets_router,
+    exports_router,
+    ingestion_router,
+    qa_router,
+)
 from app.routes import canonical_router
 from app.routes import router as v1_router
 from app.schemas import ApiError, ApiErrorDetail, ApiErrorResponse
@@ -37,7 +42,12 @@ app.include_router(v1_router)
 app.include_router(canonical_router)
 
 # Resource routers are served under both prefixes so clients may use either.
-for resource_router in (analysis_targets_router, ingestion_router, qa_router):
+for resource_router in (
+    analysis_targets_router,
+    ingestion_router,
+    qa_router,
+    exports_router,
+):
     app.include_router(resource_router, prefix="/api/v1")
     app.include_router(resource_router, prefix="/api")
 
@@ -52,6 +62,15 @@ def error_response(
         error=ApiError(code=code, message=message, details=details or []),
     )
     return JSONResponse(status_code=status_code, content=payload.model_dump())
+
+
+def validation_context(ctx: dict | None) -> dict | None:
+    if not ctx:
+        return None
+    return {
+        key: value if isinstance(value, (str, int, float, bool)) else str(value)
+        for key, value in ctx.items()
+    }
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -71,7 +90,7 @@ async def request_validation_exception_handler(
         ApiErrorDetail(
             field=".".join(str(segment) for segment in err.get("loc", [])[1:]) or None,
             issue=err.get("msg", "Invalid request"),
-            context=err.get("ctx"),
+            context=validation_context(err.get("ctx")),
         )
         for err in exc.errors()
     ]

@@ -103,3 +103,34 @@ Rehearse these categories before class:
 
 The deterministic scope cases used by CI are in
 `apps/api/tests/fixtures/qa_scope_cases.json`.
+
+## Sprint 3 Local Validation
+
+After applying the latest schema, run the same local checks used by CI:
+
+```bash
+cd apps/api
+source .venv/bin/activate
+alembic upgrade head
+ruff check app tests
+ruff format --check app tests
+pytest --cov=app --cov-report=xml
+
+cd ../web
+npm run lint
+npm run typecheck
+npm run test:coverage
+npm run build
+```
+
+For a Sprint 3 rehearsal, prepare two authenticated accounts and seed real review
+files for distinct analyses. Verify the full workflow before class:
+
+1. Reopen a saved analysis and confirm current reviews, summary, and Q&A history.
+2. Rename an analysis and use Save As; confirm the copy has current reviews and empty Q&A history.
+3. Ask a grounded question and inspect supporting review excerpts.
+4. Browse the complete review dataset and apply rating/date filters.
+5. Refresh an existing analysis and confirm duplicate reviews are not created.
+6. Export current reviews to CSV and the analysis to Markdown.
+7. Delete only a disposable analysis.
+8. Sign in as User B and request a known User A analysis id to confirm isolation.

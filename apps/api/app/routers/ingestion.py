@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile, status
@@ -113,9 +114,22 @@ async def list_target_reviews(
     db: DbSession,
     limit: int = Query(default=25, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    min_rating: float | None = Query(default=None, ge=1, le=5),
+    max_rating: float | None = Query(default=None, ge=1, le=5),
+    reviewed_after: datetime | None = None,
+    reviewed_before: datetime | None = None,
 ) -> ReviewListResponse:
     target = analysis_target_service.get_owned_target(db, user.id, target_id)
-    reviews, total = review_service.list_reviews(db, target.id, limit, offset)
+    reviews, total = review_service.list_reviews(
+        db,
+        target.id,
+        limit,
+        offset,
+        min_rating=min_rating,
+        max_rating=max_rating,
+        reviewed_after=reviewed_after,
+        reviewed_before=reviewed_before,
+    )
     return ReviewListResponse(
         items=[ReviewResponse.model_validate(review) for review in reviews],
         total=total,

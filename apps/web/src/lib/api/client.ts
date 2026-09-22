@@ -106,4 +106,16 @@ export async function apiFetch<T>(path: string, options: RequestOptions): Promis
   return (await response.json()) as T
 }
 
+export async function apiDownload(path: string, getToken: TokenGetter): Promise<Response> {
+  const token = await getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers })
+  if (!response.ok) {
+    throw await toApiError(response)
+  }
+  return response
+}
+
 export { API_BASE_URL }

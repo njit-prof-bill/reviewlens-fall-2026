@@ -6,6 +6,7 @@ or joins to the target and filters on the owner (S1-BR-009).
 """
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -15,16 +16,29 @@ from app.errors import ResourceNotFoundError
 
 
 def list_reviews(
-    session: Session, target_id: uuid.UUID, limit: int, offset: int
+    session: Session,
+    target_id: uuid.UUID,
+    limit: int,
+    offset: int,
+    min_rating: float | None = None,
+    max_rating: float | None = None,
+    reviewed_after: datetime | None = None,
+    reviewed_before: datetime | None = None,
 ) -> tuple[list[Review], int]:
-    total = session.scalar(
-        select(func.count())
-        .select_from(Review)
-        .where(Review.analysis_target_id == target_id)
-    )
+    filters = [Review.analysis_target_id == target_id, Review.is_current.is_(True)]
+    if min_rating is not None:
+        filters.append(Review.rating >= min_rating)
+    if max_rating is not None:
+        filters.append(Review.rating <= max_rating)
+    if reviewed_after is not None:
+        filters.append(Review.reviewed_at >= reviewed_after)
+    if reviewed_before is not None:
+        filters.append(Review.reviewed_at <= reviewed_before)
+
+    total = session.scalar(select(func.count()).select_from(Review).where(*filters))
     statement = (
         select(Review)
-        .where(Review.analysis_target_id == target_id)
+        .where(*filters)
         .order_by(Review.reviewed_at.desc().nullslast(), Review.created_at.desc())
         .limit(limit)
         .offset(offset)
@@ -76,7 +90,7 @@ def build_summary(session: Session, target: AnalysisTarget) -> dict:
             func.avg(Review.rating),
             func.min(Review.reviewed_at),
             func.max(Review.reviewed_at),
-        ).where(Review.analysis_target_id == target.id)
+        ).where(Review.analysis_target_id == target.id, Review.is_current.is_(True))
     ).one()
 
     count, average, earliest, latest = aggregates

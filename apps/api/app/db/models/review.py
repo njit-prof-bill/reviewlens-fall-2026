@@ -1,7 +1,17 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, String, Text, func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Uuid
 
@@ -12,6 +22,7 @@ class Review(Base):
     """A normalized review. Ownership is inherited through the analysis target."""
 
     __tablename__ = "reviews"
+    __table_args__ = (UniqueConstraint("analysis_target_id", "review_identity_key"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -28,6 +39,10 @@ class Review(Base):
         nullable=True,
         index=True,
     )
+    review_identity_key: Mapped[str] = mapped_column(
+        String(500), nullable=False, default=lambda: f"manual:{uuid.uuid4()}"
+    )
+    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     review_text: Mapped[str] = mapped_column(Text, nullable=False)
     rating: Mapped[float] = mapped_column(Float, nullable=False)
     source_review_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

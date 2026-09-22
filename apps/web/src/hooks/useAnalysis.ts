@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   askTargetQuestion,
+  clearTargetQuestions,
+  copyAnalysisTarget,
   createAnalysisTarget,
   deleteAnalysisTarget,
   getAnalysisTarget,
@@ -15,15 +17,15 @@ import {
   startUrlIngestion,
 } from '@/lib/api/analysisTargets'
 import { ApiError } from '@/lib/api/client'
-import { isTerminal } from '@/lib/api/types'
+import { isTerminal, type ReviewFilters } from '@/lib/api/types'
 import { useApiToken } from '@/hooks/useApiToken'
 
 export const analysisKeys = {
   all: ['analysis-targets'] as const,
   detail: (id: string) => ['analysis-targets', id] as const,
   summary: (id: string) => ['analysis-targets', id, 'summary'] as const,
-  reviews: (id: string, offset: number) =>
-    ['analysis-targets', id, 'reviews', offset] as const,
+  reviews: (id: string, offset: number, filters?: ReviewFilters) =>
+    ['analysis-targets', id, 'reviews', offset, filters ?? {}] as const,
   questions: (id: string) => ['analysis-targets', id, 'questions'] as const,
   run: (runId: string) => ['ingestion-runs', runId] as const,
 }
@@ -63,13 +65,34 @@ export function useTargetSummary(id: string | undefined) {
   })
 }
 
-export function useTargetReviews(id: string | undefined, limit = 5, offset = 0) {
+export function useTargetReviews(
+  id: string | undefined,
+  limit = 5,
+  offset = 0,
+  filters?: ReviewFilters,
+) {
   const getToken = useApiToken()
   return useQuery({
-    queryKey: analysisKeys.reviews(id ?? '', offset),
-    queryFn: ({ signal }) => listTargetReviews(id!, { limit, offset }, getToken, signal),
+    queryKey: analysisKeys.reviews(id ?? '', offset, filters),
+    queryFn: ({ signal }) =>
+      listTargetReviews(id!, { limit, offset, filters }, getToken, signal),
     enabled: Boolean(id),
     retry: retryUnlessClientError,
+  })
+}
+
+export function useCopyAnalysisTarget() {
+  const getToken = useApiToken()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      copyAnalysisTarget(id, name, getToken),
+    onSuccess: (target) => {
+      queryClient.invalidateQueries({ queryKey: analysisKeys.all })
+      queryClient.invalidateQueries({ queryKey: analysisKeys.detail(target.id) })
+      queryClient.invalidateQueries({ queryKey: analysisKeys.summary(target.id) })
+      queryClient.invalidateQueries({ queryKey: analysisKeys.questions(target.id) })
+    },
   })
 }
 
@@ -90,6 +113,18 @@ export function useAskTargetQuestion(targetId: string | undefined) {
     mutationFn: (question: string) => askTargetQuestion(targetId!, question, getToken),
     onSuccess: (entry) => {
       if (!targetId || entry.analysis_target_id !== targetId) return
+      queryClient.invalidateQueries({ queryKey: analysisKeys.questions(targetId) })
+    },
+  })
+}
+
+export function useClearTargetQuestions(targetId: string | undefined) {
+  const getToken = useApiToken()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => clearTargetQuestions(targetId!, getToken),
+    onSuccess: () => {
+      if (!targetId) return
       queryClient.invalidateQueries({ queryKey: analysisKeys.questions(targetId) })
     },
   })

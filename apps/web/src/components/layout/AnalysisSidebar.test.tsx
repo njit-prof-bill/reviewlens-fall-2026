@@ -6,10 +6,12 @@ import { renderWithProviders } from '@/test/utils'
 
 const listAnalysisTargets = vi.fn()
 const deleteAnalysisTarget = vi.fn()
+const copyAnalysisTarget = vi.fn()
 vi.mock('@/lib/api/analysisTargets', () => ({
   listAnalysisTargets: (...args: unknown[]) => listAnalysisTargets(...args),
   deleteAnalysisTarget: (...args: unknown[]) => deleteAnalysisTarget(...args),
   renameAnalysisTarget: vi.fn(),
+  copyAnalysisTarget: (...args: unknown[]) => copyAnalysisTarget(...args),
 }))
 
 const SOURCE_URL =
@@ -27,6 +29,14 @@ beforeEach(() => {
     },
   ])
   deleteAnalysisTarget.mockResolvedValue(undefined)
+  copyAnalysisTarget.mockResolvedValue({
+    id: 'target-2',
+    name: 'Blue Bottle Coffee Copy',
+    platform: 'google_maps',
+    source_url: SOURCE_URL,
+    created_at: '2026-09-01T00:00:00Z',
+    updated_at: '2026-09-01T00:00:00Z',
+  })
 })
 
 describe('AnalysisSidebar', () => {

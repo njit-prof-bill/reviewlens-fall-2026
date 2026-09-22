@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
@@ -99,3 +99,8 @@ def list_entries(session: Session, target_id: uuid.UUID) -> list[QAEntry]:
         .order_by(QAEntry.created_at, QAEntry.id)
     )
     return list(session.scalars(statement))
+
+
+def clear_entries(session: Session, target_id: uuid.UUID) -> None:
+    session.execute(delete(QAEntry).where(QAEntry.analysis_target_id == target_id))
+    session.commit()

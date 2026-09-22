@@ -19,7 +19,7 @@ def build_context(
 ) -> QAContext:
     statement = (
         select(Review)
-        .where(Review.analysis_target_id == target_id)
+        .where(Review.analysis_target_id == target_id, Review.is_current.is_(True))
         .order_by(Review.reviewed_at.desc().nullslast(), Review.id)
     )
     available = tuple(session.scalars(statement))

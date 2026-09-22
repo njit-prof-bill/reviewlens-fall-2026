@@ -1,4 +1,4 @@
-import { ExternalLink, FileUp, RefreshCw } from 'lucide-react'
+import { Download, ExternalLink, FileText, FileUp, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -7,6 +7,7 @@ import { CurrentAnalysisScopePanel } from '@/components/analysis/CurrentAnalysis
 import { ImportReviewsDialog } from '@/components/analysis/ImportReviewsDialog'
 import { IngestionSummaryCard } from '@/components/analysis/IngestionSummaryCard'
 import { NotebookStep } from '@/components/analysis/NotebookStep'
+import { ReviewDatasetDialog } from '@/components/analysis/ReviewDatasetDialog'
 import { ReviewPreviewTable } from '@/components/analysis/ReviewPreviewTable'
 import { ReviewQANotebook } from '@/components/analysis/ReviewQANotebook'
 import { Button } from '@/components/ui/button'
@@ -19,8 +20,10 @@ import {
   useTargetReviews,
   useTargetSummary,
 } from '@/hooks/useAnalysis'
+import { exportTargetAnalysisMarkdown, exportTargetReviewsCsv } from '@/lib/api/analysisTargets'
 import { ApiError } from '@/lib/api/client'
 import { isTerminal, platformLabel } from '@/lib/api/types'
+import { useApiToken } from '@/hooks/useApiToken'
 
 const PREVIEW_SIZE = 5
 
@@ -28,11 +31,14 @@ export function AnalysisWorkspace() {
   const { targetId } = useParams<{ targetId: string }>()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
+  const getToken = useApiToken()
   const [activeRunId, setActiveRunId] = useState<string | undefined>(
     searchParams.get('run') ?? undefined,
   )
   const [isImportOpen, setImportOpen] = useState(false)
-  const [previewSize, setPreviewSize] = useState(PREVIEW_SIZE)
+  const [isDatasetOpen, setDatasetOpen] = useState(false)
+  const [isExporting, setExporting] = useState(false)
+  const [previewSize] = useState(PREVIEW_SIZE)
 
   const target = useAnalysisTarget(targetId)
   const summary = useTargetSummary(targetId)
@@ -56,6 +62,29 @@ export function AnalysisWorkspace() {
     const started = await startIngestion.mutateAsync(file)
     setActiveRunId(started.id)
     return started
+  }
+
+  async function downloadExport(kind: 'csv' | 'markdown') {
+    if (!targetId || isExporting) return
+    setExporting(true)
+    try {
+      const response =
+        kind === 'csv'
+          ? await exportTargetReviewsCsv(targetId, getToken)
+          : await exportTargetAnalysisMarkdown(targetId, getToken)
+      const blob = await response.blob()
+      const disposition = response.headers.get('content-disposition') ?? ''
+      const filename = disposition.match(/filename="([^"]+)"/)?.[1] ??
+        (kind === 'csv' ? 'reviews.csv' : 'analysis.md')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      link.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
   }
 
   if (target.isPending) {
@@ -110,6 +139,28 @@ export function AnalysisWorkspace() {
               <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
             </a>
           </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isExporting || !summary.data?.reviews_collected}
+              onClick={() => void downloadExport('csv')}
+            >
+              <Download className="size-4" />
+              Export CSV
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isExporting}
+              onClick={() => void downloadExport('markdown')}
+            >
+              <FileText className="size-4" />
+              Export Markdown
+            </Button>
+          </div>
         </header>
 
         <NotebookStep
@@ -124,7 +175,7 @@ export function AnalysisWorkspace() {
                 disabled={isRunning || startIngestion.isPending}
               >
                 <RefreshCw className={isRunning ? 'size-4 animate-spin' : 'size-4'} />
-                {isRunning ? 'Collecting...' : 'Analyze Reviews'}
+                {isRunning ? 'Refreshing...' : 'Refresh Reviews'}
               </Button>
               <Button
                 variant={showFallbackProminently ? 'secondary' : 'ghost'}
@@ -151,8 +202,18 @@ export function AnalysisWorkspace() {
             canViewMore={Boolean(
               reviews.data && reviews.data.items.length < reviews.data.total,
             )}
-            onViewMore={() => setPreviewSize((size) => size + 20)}
+            onViewMore={() => setDatasetOpen(true)}
           />
+          {reviews.data?.total ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3"
+              onClick={() => setDatasetOpen(true)}
+            >
+              Browse and filter reviews
+            </Button>
+          ) : null}
         </NotebookStep>
 
         <NotebookStep step={3} title="Ask the Reviews">
@@ -174,6 +235,13 @@ export function AnalysisWorkspace() {
         onImport={beginIngestion}
         isImporting={startIngestion.isPending}
       />
+      {targetId ? (
+        <ReviewDatasetDialog
+          targetId={targetId}
+          open={isDatasetOpen}
+          onOpenChange={setDatasetOpen}
+        />
+      ) : null}
     </div>
   )
 }
