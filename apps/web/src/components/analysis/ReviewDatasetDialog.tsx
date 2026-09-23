@@ -2,6 +2,7 @@ import { Star } from 'lucide-react'
 import { useState } from 'react'
 
 import { formatReviewDate } from '@/components/analysis/format'
+import { toReviewFilters, type AppliedFilters } from '@/components/analysis/reviewFilters'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,41 +24,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useTargetReviews } from '@/hooks/useAnalysis'
-import type { ReviewFilters } from '@/lib/api/types'
 
 // Matches the backend's maximum page size, so browsing needs no pagination controls.
 const PAGE_SIZE = 200
-
-function toStartOfDay(value: string) {
-  return value ? `${value}T00:00:00Z` : undefined
-}
-
-function toEndOfDay(value: string) {
-  return value ? `${value}T23:59:59Z` : undefined
-}
-
-interface AppliedFilters {
-  minRating: string
-  maxRating: string
-  after: string
-  before: string
-}
-
-const EMPTY_FILTERS: AppliedFilters = { minRating: '', maxRating: '', after: '', before: '' }
 
 interface ReviewDatasetDialogProps {
   targetId: string
   open: boolean
   onOpenChange: (open: boolean) => void
+  applied: AppliedFilters
+  onApply: (next: AppliedFilters) => void
 }
 
 export function ReviewDatasetDialog({
   targetId,
   open,
   onOpenChange,
+  applied,
+  onApply,
 }: ReviewDatasetDialogProps) {
-  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>(EMPTY_FILTERS)
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Base dialog defaults to sm:max-w-sm; override it explicitly or it wins over max-w-5xl. */}
@@ -74,9 +59,9 @@ export function ReviewDatasetDialog({
           <ReviewDatasetPanel
             key={targetId}
             targetId={targetId}
-            applied={appliedFilters}
+            applied={applied}
             onApply={(next) => {
-              setAppliedFilters(next)
+              onApply(next)
               onOpenChange(false)
             }}
             onCancel={() => onOpenChange(false)}
@@ -100,13 +85,7 @@ function ReviewDatasetPanel({ targetId, applied, onApply, onCancel }: ReviewData
   const [after, setAfter] = useState(applied.after)
   const [before, setBefore] = useState(applied.before)
 
-  const filters: ReviewFilters = {
-    minRating: applied.minRating ? Number(applied.minRating) : undefined,
-    maxRating: applied.maxRating ? Number(applied.maxRating) : undefined,
-    reviewedAfter: toStartOfDay(applied.after),
-    reviewedBefore: toEndOfDay(applied.before),
-  }
-  const reviews = useTargetReviews(targetId, PAGE_SIZE, 0, filters)
+  const reviews = useTargetReviews(targetId, PAGE_SIZE, 0, toReviewFilters(applied))
 
   function handleApply(event: React.FormEvent) {
     event.preventDefault()
