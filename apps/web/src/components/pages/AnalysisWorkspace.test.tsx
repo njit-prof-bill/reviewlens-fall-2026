@@ -164,4 +164,61 @@ describe('AnalysisWorkspace', () => {
 
     expect(await screen.findByText('Review dataset')).toBeInTheDocument()
   })
+
+  it('updates the Review Preview to match a filter applied in the dialog', async () => {
+    listTargetReviews.mockImplementation((_id: string, options: { filters?: { maxRating?: number } }) => {
+      if (options.filters?.maxRating === 2) {
+        return Promise.resolve({
+          items: [
+            {
+              id: 'review-low',
+              review_text: 'Service was disappointing this time.',
+              rating: 2,
+              reviewer_name: 'Scooby',
+              reviewed_at: '2026-01-10T00:00:00Z',
+              source_review_id: 'src-low',
+              review_url: null,
+            },
+          ],
+          total: 1,
+          limit: 5,
+          offset: 0,
+        })
+      }
+      return Promise.resolve({
+        items: [
+          {
+            id: 'review-high',
+            review_text: 'Great coffee and friendly staff.',
+            rating: 5,
+            reviewer_name: 'Kaitlin',
+            reviewed_at: '2026-07-01T00:00:00Z',
+            source_review_id: 'src-high',
+            review_url: null,
+          },
+        ],
+        total: 25,
+        limit: 5,
+        offset: 0,
+      })
+    })
+    const user = userEvent.setup()
+
+    renderWithProviders(<AnalysisWorkspace />)
+    expect(await screen.findByText('Great coffee and friendly staff.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /browse and filter reviews/i }))
+    await screen.findByText('Review dataset')
+    await user.selectOptions(screen.getByLabelText('At most'), '2')
+    await user.click(screen.getByRole('button', { name: /^ok$/i }))
+
+    expect(await screen.findByText('Service was disappointing this time.')).toBeInTheDocument()
+    expect(screen.queryByText('Great coffee and friendly staff.')).not.toBeInTheDocument()
+    expect(screen.getByText('Filtered to matching reviews only.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /clear filters/i }))
+
+    expect(await screen.findByText('Great coffee and friendly staff.')).toBeInTheDocument()
+    expect(screen.queryByText('Filtered to matching reviews only.')).not.toBeInTheDocument()
+  })
 })

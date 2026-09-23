@@ -7,9 +7,17 @@ import { CurrentAnalysisScopePanel } from '@/components/analysis/CurrentAnalysis
 import { ImportReviewsDialog } from '@/components/analysis/ImportReviewsDialog'
 import { IngestionSummaryCard } from '@/components/analysis/IngestionSummaryCard'
 import { NotebookStep } from '@/components/analysis/NotebookStep'
-import { ReviewDatasetDialog } from '@/components/analysis/ReviewDatasetDialog'
+import {
+  ReviewDatasetDialog,
+} from '@/components/analysis/ReviewDatasetDialog'
 import { ReviewPreviewTable } from '@/components/analysis/ReviewPreviewTable'
 import { ReviewQANotebook } from '@/components/analysis/ReviewQANotebook'
+import {
+  EMPTY_FILTERS,
+  hasActiveFilters,
+  toReviewFilters,
+  type AppliedFilters,
+} from '@/components/analysis/reviewFilters'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -38,11 +46,12 @@ export function AnalysisWorkspace() {
   const [isImportOpen, setImportOpen] = useState(false)
   const [isDatasetOpen, setDatasetOpen] = useState(false)
   const [isExporting, setExporting] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>(EMPTY_FILTERS)
   const [previewSize] = useState(PREVIEW_SIZE)
 
   const target = useAnalysisTarget(targetId)
   const summary = useTargetSummary(targetId)
-  const reviews = useTargetReviews(targetId, previewSize)
+  const reviews = useTargetReviews(targetId, previewSize, 0, toReviewFilters(appliedFilters))
   const run = useIngestionRun(activeRunId)
   const startIngestion = useStartIngestion(targetId)
 
@@ -196,6 +205,20 @@ export function AnalysisWorkspace() {
         </NotebookStep>
 
         <NotebookStep step={2} title="Review Preview">
+          {hasActiveFilters(appliedFilters) ? (
+            <div className="mb-3 flex items-center justify-between gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              <span>Filtered to matching reviews only.</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto px-2 py-1"
+                onClick={() => setAppliedFilters(EMPTY_FILTERS)}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ) : null}
           <ReviewPreviewTable
             reviews={reviews.data}
             isLoading={reviews.isPending || isRunning}
@@ -204,7 +227,7 @@ export function AnalysisWorkspace() {
             )}
             onViewMore={() => setDatasetOpen(true)}
           />
-          {reviews.data?.total ? (
+          {reviews.data?.total || hasActiveFilters(appliedFilters) ? (
             <Button
               type="button"
               variant="outline"
@@ -240,6 +263,8 @@ export function AnalysisWorkspace() {
           targetId={targetId}
           open={isDatasetOpen}
           onOpenChange={setDatasetOpen}
+          applied={appliedFilters}
+          onApply={setAppliedFilters}
         />
       ) : null}
     </div>
