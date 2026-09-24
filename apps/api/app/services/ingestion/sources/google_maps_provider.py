@@ -48,9 +48,9 @@ def _expand_short_url(url: str, timeout: float) -> str:
 
 
 def extract_data_id(source_url: str) -> str | None:
-    """Pull the Google place identifier embedded in a Maps place URL."""
-    match = _DATA_ID.search(source_url)
-    return match.group(1) if match else None
+    """Pull the selected place identifier from a Maps URL with nested places."""
+    matches = _DATA_ID.findall(source_url)
+    return matches[-1] if matches else None
 
 
 def _raise_for_transport(exc: Exception) -> IngestionError:
