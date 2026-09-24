@@ -49,6 +49,9 @@ beforeEach(() => {
     earliest_review: '2026-04-08T00:00:00Z',
     latest_review: '2026-07-02T00:00:00Z',
     latest_run: null,
+    rating_distribution: [1, 2, 3, 4, 5].map((rating) => ({ rating, count: 2 })),
+    review_volume_by_month: [{ period: '2026-07', count: 18 }],
+    average_rating_by_month: [{ period: '2026-07', average_rating: 4.3 }],
   })
   listTargetReviews.mockResolvedValue({ items: [], total: 0, limit: 5, offset: 0 })
   listTargetQuestions.mockResolvedValue({ items: [] })

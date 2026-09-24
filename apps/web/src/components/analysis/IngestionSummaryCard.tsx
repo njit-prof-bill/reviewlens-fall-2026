@@ -43,9 +43,116 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
+function ChartHeading({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <h3 className="text-sm font-medium text-foreground">{title}</h3>
+      <span className="text-xs text-muted-foreground">{detail}</span>
+    </div>
+  )
+}
+
+function RatingDistribution({
+  distribution,
+  onRatingFilter,
+}: {
+  distribution: Array<{ rating: number; count: number }>
+  onRatingFilter?: (rating: number) => void
+}) {
+  const maximum = Math.max(...distribution.map((point) => point.count), 1)
+  return (
+    <div className="space-y-3">
+      <ChartHeading title="Rating distribution" detail="reviews by star rating" />
+      <div className="grid grid-cols-5 items-end gap-2" aria-label="Rating distribution chart">
+        {distribution.map((point) => (
+          <button
+            key={point.rating}
+            type="button"
+            className="group flex min-w-0 flex-col items-center gap-1"
+            onClick={() => onRatingFilter?.(point.rating)}
+            aria-label={`Filter to ${point.rating} star reviews: ${point.count} reviews`}
+            disabled={!onRatingFilter}
+          >
+            <span className="text-xs tabular-nums text-muted-foreground">{point.count}</span>
+            <span
+              className="w-full rounded-t-sm bg-primary/75 transition-colors group-hover:bg-primary"
+              style={{ height: `${Math.max((point.count / maximum) * 72, point.count ? 8 : 2)}px` }}
+            />
+            <span className="text-xs tabular-nums text-muted-foreground">{point.rating} star</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MonthlyVolumeChart({ volume }: { volume: Array<{ period: string; count: number }> }) {
+  if (volume.length === 0) {
+    return <p className="text-sm text-muted-foreground">No dated reviews are available.</p>
+  }
+  const visible = volume.slice(-12)
+  const maximum = Math.max(...visible.map((point) => point.count), 1)
+  return (
+    <div className="space-y-3">
+      <ChartHeading title="Review volume" detail="monthly, latest 12 months" />
+      <div
+        className="grid min-h-28 grid-flow-col auto-cols-fr items-end gap-1.5"
+        role="img"
+        aria-label="Monthly review volume chart"
+      >
+        {visible.map((point) => (
+          <div key={point.period} className="flex min-w-0 flex-col items-center gap-1">
+            <span className="text-[10px] tabular-nums text-muted-foreground">{point.count}</span>
+            <span
+              className="w-full rounded-t-sm bg-emerald-500/70"
+              style={{ height: `${Math.max((point.count / maximum) * 64, 4)}px` }}
+            />
+            <span className="truncate text-[10px] text-muted-foreground">{point.period.slice(2)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AverageRatingChart({
+  averages,
+}: {
+  averages: Array<{ period: string; average_rating: number }>
+}) {
+  if (averages.length === 0) {
+    return <p className="text-sm text-muted-foreground">No dated reviews are available.</p>
+  }
+  const visible = averages.slice(-12)
+  return (
+    <div className="space-y-3">
+      <ChartHeading title="Average rating over time" detail="monthly average, latest 12 months" />
+      <div
+        className="grid min-h-28 grid-flow-col auto-cols-fr items-end gap-1.5"
+        role="img"
+        aria-label="Average rating over time chart"
+      >
+        {visible.map((point) => (
+          <div key={point.period} className="flex min-w-0 flex-col items-center gap-1">
+            <span className="text-[10px] tabular-nums text-muted-foreground">
+              {point.average_rating.toFixed(1)}
+            </span>
+            <span
+              className="w-full rounded-t-sm bg-amber-500/75"
+              style={{ height: `${Math.max((point.average_rating / 5) * 64, 4)}px` }}
+            />
+            <span className="truncate text-[10px] text-muted-foreground">{point.period.slice(2)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 interface IngestionSummaryCardProps {
   summary: AnalysisTargetSummary | undefined
   isLoading: boolean
+  onRatingFilter?: (rating: number) => void
 }
 
 const REJECTION_REASON_LABELS: Record<string, string> = {
@@ -60,7 +167,7 @@ function rejectionSummary(reasons: Record<string, number> | null): string {
     .join(', ')
 }
 
-export function IngestionSummaryCard({ summary, isLoading }: IngestionSummaryCardProps) {
+export function IngestionSummaryCard({ summary, isLoading, onRatingFilter }: IngestionSummaryCardProps) {
   if (isLoading || !summary) {
     return (
       <Card>
@@ -96,12 +203,22 @@ export function IngestionSummaryCard({ summary, isLoading }: IngestionSummaryCar
             No reviews have been collected for this analysis yet.
           </p>
         ) : (
-          <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-            <Stat label="Reviews collected" value={String(summary.reviews_collected)} />
-            <Stat label="Average rating" value={formatRating(summary.average_rating)} />
-            <Stat label="Earliest review" value={formatReviewDate(summary.earliest_review)} />
-            <Stat label="Latest review" value={formatReviewDate(summary.latest_review)} />
-          </dl>
+          <>
+            <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+              <Stat label="Reviews collected" value={String(summary.reviews_collected)} />
+              <Stat label="Average rating" value={formatRating(summary.average_rating)} />
+              <Stat label="Earliest review" value={formatReviewDate(summary.earliest_review)} />
+              <Stat label="Latest review" value={formatReviewDate(summary.latest_review)} />
+            </dl>
+            <div className="grid gap-5 border-t border-border pt-5 lg:grid-cols-3">
+              <RatingDistribution
+                distribution={summary.rating_distribution}
+                onRatingFilter={onRatingFilter}
+              />
+              <MonthlyVolumeChart volume={summary.review_volume_by_month} />
+              <AverageRatingChart averages={summary.average_rating_by_month} />
+            </div>
+          </>
         )}
 
         {state === 'failed' && run?.error_message ? (

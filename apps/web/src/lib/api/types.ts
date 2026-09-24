@@ -63,6 +63,9 @@ export interface AnalysisTargetSummary {
   earliest_review: string | null
   latest_review: string | null
   latest_run: IngestionRun | null
+  rating_distribution: Array<{ rating: number; count: number }>
+  review_volume_by_month: Array<{ period: string; count: number }>
+  average_rating_by_month: Array<{ period: string; average_rating: number }>
 }
 
 export type QAResultKind = 'grounded' | 'insufficient_evidence' | 'out_of_scope'

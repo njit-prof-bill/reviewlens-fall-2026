@@ -33,6 +33,12 @@ function summary(latest: IngestionRun | null, overrides: Partial<AnalysisTargetS
     earliest_review: latest ? '2026-04-08T00:00:00Z' : null,
     latest_review: latest ? '2026-07-02T00:00:00Z' : null,
     latest_run: latest,
+    rating_distribution: [1, 2, 3, 4, 5].map((rating) => ({
+      rating,
+      count: latest ? 2 : 0,
+    })),
+    review_volume_by_month: latest ? [{ period: '2026-07', count: 18 }] : [],
+    average_rating_by_month: latest ? [{ period: '2026-07', average_rating: 4.3 }] : [],
     ...overrides,
   } satisfies AnalysisTargetSummary
 }
@@ -52,10 +58,12 @@ describe('IngestionSummaryCard', () => {
     )
 
     expect(screen.getByText('Complete')).toBeInTheDocument()
-    expect(screen.getByText('18')).toBeInTheDocument()
-    expect(screen.getByText('4.3')).toBeInTheDocument()
+    expect(screen.getAllByText('18').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText('4.3').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('Blue Bottle Coffee')).toBeInTheDocument()
     expect(screen.getByText('Google Maps')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /filter to 5 star reviews/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /monthly review volume chart/i })).toBeInTheDocument()
   })
 
   it('explains a partial result with both counts', () => {

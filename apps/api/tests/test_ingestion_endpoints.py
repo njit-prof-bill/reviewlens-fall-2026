@@ -530,6 +530,9 @@ class TestTargetSummary:
         assert summary["earliest_review"].startswith("2026-04-08")
         assert summary["latest_review"].startswith("2026-07-02")
         assert summary["latest_run"]["status"] == "succeeded"
+        assert sum(point["count"] for point in summary["rating_distribution"]) == 4
+        assert summary["review_volume_by_month"]
+        assert summary["average_rating_by_month"]
 
     def test_summary_before_any_ingestion_reports_no_run(
         self, client_factory, user_a, target_a

@@ -25,6 +25,21 @@ class ReviewListResponse(BaseModel):
     offset: int
 
 
+class RatingDistributionPoint(BaseModel):
+    rating: int
+    count: int
+
+
+class ReviewVolumePoint(BaseModel):
+    period: str
+    count: int
+
+
+class AverageRatingPoint(BaseModel):
+    period: str
+    average_rating: float
+
+
 class AnalysisTargetSummaryResponse(BaseModel):
     """Aggregates computed from persisted reviews. Never model-generated."""
 
@@ -36,3 +51,6 @@ class AnalysisTargetSummaryResponse(BaseModel):
     earliest_review: datetime | None = None
     latest_review: datetime | None = None
     latest_run: IngestionRunResponse | None = None
+    rating_distribution: list[RatingDistributionPoint]
+    review_volume_by_month: list[ReviewVolumePoint]
+    average_rating_by_month: list[AverageRatingPoint]
