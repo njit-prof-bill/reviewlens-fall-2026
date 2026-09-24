@@ -214,7 +214,7 @@ class TestUrlIngestion:
             not in texts
         )
 
-    def test_successful_refresh_promotes_the_new_current_dataset(
+    def test_successful_refresh_merges_new_reviews_into_the_current_dataset(
         self, client_factory, user_a, target_a, monkeypatch
     ):
         client = client_factory(user_a)
@@ -231,8 +231,8 @@ class TestUrlIngestion:
             f"/api/v1/analysis-targets/{target_a['id']}/summary"
         ).json()
 
-        assert reviews["total"] == 2
-        assert summary["reviews_collected"] == 2
+        assert reviews["total"] == 4
+        assert summary["reviews_collected"] == 4
 
     def test_a_partial_run_reports_both_counts(
         self, client_factory, user_a, target_a, monkeypatch

@@ -12,7 +12,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from hashlib import sha256
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import IngestionRun, Review
@@ -125,15 +125,6 @@ def _promote_reviews(
         review.source_metadata = item.source_metadata
         session.add(review)
 
-    session.execute(
-        update(Review)
-        .where(
-            Review.analysis_target_id == run.analysis_target_id,
-            Review.review_identity_key.not_in(incoming.keys()),
-            Review.is_current.is_(True),
-        )
-        .values(is_current=False)
-    )
     return len(incoming)
 
 

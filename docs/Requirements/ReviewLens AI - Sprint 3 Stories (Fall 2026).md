@@ -113,11 +113,11 @@ A Sprint 3 story is not complete until:
 ## S3-BR Re-Ingestion and Refresh
 
 1. **S3-BR-014**: A user may refresh or re-ingest an existing owned analysis.
-2. **S3-BR-015**: The application must clearly identify which successful review dataset is current.
-3. **S3-BR-016**: A failed refresh must not destroy the last known-good review dataset.
+2. **S3-BR-015**: The application must clearly identify the current review dataset as the deduplicated union of previously persisted reviews and successfully fetched reviews, unless the provider explicitly confirms a complete replacement dataset.
+3. **S3-BR-016**: A failed refresh must not destroy or change the last known-good review dataset.
 4. **S3-BR-017**: Re-ingestion must not silently create duplicate review records representing the same source review.
 5. **S3-BR-018**: The team's duplicate strategy must be deterministic and testable.
-6. **S3-BR-019**: A successful refresh must update the ingestion summary to represent the new current dataset.
+6. **S3-BR-019**: A successful refresh must update the ingestion summary to represent the accumulated current dataset, including newly discovered reviews and previously persisted reviews retained from a partial or throttled response.
 
 ## S3-BR Evidence and Review Exploration
 
@@ -325,6 +325,10 @@ The user should not need to create a second AnalysisTarget merely to obtain newe
 
 The application should record enough ingestion state to distinguish the new attempt from the previously successful dataset.
 
+Because the review provider may throttle responses or return only a partial batch, re-ingestion must merge newly fetched reviews into the existing persisted dataset. Reviews already collected must remain current when they are absent from a later partial response.
+
+The application may remove or deactivate previously collected reviews only when the provider explicitly confirms that the response represents the complete source dataset.
+
 **Rules:** S3-BR-014, S3-BR-015
 
 ## S3-010 - Promote a Successful Refresh to the Current Dataset
@@ -334,7 +338,7 @@ After successful re-ingestion, ReviewLens clearly treats the resulting review da
 
 **Technical Guidance:**
 
-The implementation may replace or reconcile existing review records, but current-dataset semantics must be unambiguous.
+After a successful refresh, the current dataset is the deduplicated union of previously persisted reviews and newly fetched reviews. Existing reviews with the same stable identity should be reconciled with updated source fields; reviews absent from a partial response must remain current.
 
 After successful refresh:
 
@@ -342,6 +346,8 @@ After successful refresh:
 2. Review browsing reflects the current data.
 3. Q&A uses the current data.
 4. Export uses the current data.
+
+5. The ingestion summary reflects the accumulated current dataset, including previously collected reviews retained because the provider response was partial or throttled.
 
 **Rules:** S3-BR-015, S3-BR-019
 
@@ -358,6 +364,8 @@ When a source does not provide stable identifiers, the team may use another dete
 
 The duplicate strategy should be documented and automatically tested.
 
+Re-ingestion must not create a second record for an existing source review, even when the same review is returned in multiple refresh batches.
+
 **Rules:** S3-BR-017, S3-BR-018
 
 ## S3-012 - Preserve Last Known-Good Data When Refresh Fails
@@ -367,7 +375,7 @@ If re-ingestion fails, the previously successful review dataset remains availabl
 
 **Technical Guidance:**
 
-A failed refresh should record a failed ingestion attempt without replacing valid persisted review data with an empty or partial accidental result.
+A failed refresh should record a failed ingestion attempt without replacing valid persisted review data with an empty or partial accidental result. A failed refresh must not change the current review set.
 
 The user should receive a meaningful failure state.
 

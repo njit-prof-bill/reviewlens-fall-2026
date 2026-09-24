@@ -22,6 +22,8 @@ from app.services.ingestion.base import IngestionError, IngestionResult, RawRevi
 logger = logging.getLogger(__name__)
 
 SERPAPI_ENDPOINT = "https://serpapi.com/search.json"
+DEFAULT_SORT_MODES = ("qualityScore", "newestFirst", "ratingLow", "ratingHigh")
+SUPPORTED_SORT_MODES = frozenset(DEFAULT_SORT_MODES)
 _DATA_ID = re.compile(r"!1s(0x[0-9a-fA-F]+:0x[0-9a-fA-F]+)")
 _SHORT_HOSTS = {"maps.app.goo.gl", "goo.gl", "g.co"}
 
@@ -96,6 +98,9 @@ class GoogleMapsReviewProvider:
         self,
         api_key: str | None = None,
         max_reviews: int | None = None,
+        sort_modes: tuple[str, ...] | list[str] | None = None,
+        max_pages_per_mode: int | None = None,
+        bypass_cache: bool | None = None,
         timeout: float | None = None,
         fetch_json: JsonFetcher = _http_get_json,
         expand_url: UrlExpander = _expand_short_url,
@@ -104,6 +109,17 @@ class GoogleMapsReviewProvider:
             api_key if api_key is not None else settings.review_provider_api_key
         )
         self._max_reviews = max_reviews or settings.review_fetch_max
+        configured_modes = sort_modes or settings.review_fetch_sort_modes
+        self._sort_modes = (
+            tuple(mode for mode in configured_modes if mode in SUPPORTED_SORT_MODES)
+            or DEFAULT_SORT_MODES
+        )
+        self._max_pages_per_mode = (
+            max_pages_per_mode or settings.review_fetch_max_pages_per_mode
+        )
+        self._bypass_cache = (
+            settings.review_fetch_bypass_cache if bypass_cache is None else bypass_cache
+        )
         self._timeout = timeout or settings.review_provider_timeout_seconds
         self._fetch_json = fetch_json
         self._expand_url = expand_url
@@ -118,25 +134,29 @@ class GoogleMapsReviewProvider:
         data_id = self._resolve_data_id(target.source_url)
         collected: list[RawReview] = []
         entity_name: str | None = None
-        next_page_token: str | None = None
 
-        while len(collected) < self._max_reviews:
-            payload = self._request_page(data_id, next_page_token)
-            if entity_name is None:
-                title = (payload.get("place_info") or {}).get("title")
-                if isinstance(title, str) and title.strip():
-                    entity_name = title.strip()
-            entries = payload.get("reviews") or []
-            if not entries:
-                break
+        for sort_mode in self._sort_modes:
+            next_page_token: str | None = None
+            for _ in range(self._max_pages_per_mode):
+                if len(collected) >= self._max_reviews:
+                    break
 
-            collected.extend(_map_review(entry) for entry in entries)
+                payload = self._request_page(data_id, next_page_token, sort_mode)
+                if entity_name is None:
+                    title = (payload.get("place_info") or {}).get("title")
+                    if isinstance(title, str) and title.strip():
+                        entity_name = title.strip()
+                entries = payload.get("reviews") or []
+                if not entries:
+                    break
 
-            next_page_token = (payload.get("serpapi_pagination") or {}).get(
-                "next_page_token"
-            )
-            if not next_page_token:
-                break
+                collected.extend(_map_review(entry) for entry in entries)
+
+                next_page_token = (payload.get("serpapi_pagination") or {}).get(
+                    "next_page_token"
+                )
+                if not next_page_token:
+                    break
 
         if not collected:
             raise IngestionError(IngestionErrorCode.NO_REVIEWS_AVAILABLE)
@@ -162,15 +182,18 @@ class GoogleMapsReviewProvider:
         return data_id
 
     def _request_page(
-        self, data_id: str, next_page_token: str | None
+        self, data_id: str, next_page_token: str | None, sort_mode: str
     ) -> dict[str, Any]:
         params = {
             "engine": "google_maps_reviews",
             "data_id": data_id,
             "api_key": self._api_key,
+            "sort_by": sort_mode,
         }
         if next_page_token:
             params["next_page_token"] = next_page_token
+        if self._bypass_cache:
+            params["no_cache"] = "true"
 
         url = f"{SERPAPI_ENDPOINT}?{urlencode(params)}"
         try:

@@ -6,6 +6,7 @@ No test in this module touches the network.
 import json
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from app.db.models import AnalysisTarget
@@ -52,6 +53,36 @@ class TestExtractDataId:
 
 
 class TestSuccessfulCollection:
+    def test_uses_multiple_sort_modes_and_bypasses_provider_cache(self, target):
+        requested_urls: list[str] = []
+
+        def fetch(url: str, timeout: float) -> dict:
+            requested_urls.append(url)
+            return _load("serpapi_google_maps_reviews_page2.json")
+
+        provider = GoogleMapsReviewProvider(
+            api_key="test-key",
+            max_reviews=10,
+            sort_modes=("newestFirst", "ratingLow", "ratingHigh"),
+            max_pages_per_mode=1,
+            bypass_cache=True,
+            fetch_json=fetch,
+        )
+
+        provider.fetch(target)
+
+        assert [
+            parse_qs(urlparse(url).query)["sort_by"][0] for url in requested_urls
+        ] == [
+            "newestFirst",
+            "ratingLow",
+            "ratingHigh",
+        ]
+        assert all(
+            parse_qs(urlparse(url).query)["no_cache"] == ["true"]
+            for url in requested_urls
+        )
+
     def test_maps_a_recorded_response_onto_raw_reviews(self, target):
         provider = GoogleMapsReviewProvider(
             api_key="test-key",
