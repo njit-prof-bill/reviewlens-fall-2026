@@ -201,6 +201,14 @@ export function AnalysisWorkspace() {
           <IngestionSummaryCard
             summary={summary.data}
             isLoading={summary.isPending || isRunning}
+            onRatingFilter={(rating) =>
+              setAppliedFilters({
+                minRating: String(rating),
+                maxRating: String(rating),
+                after: '',
+                before: '',
+              })
+            }
           />
         </NotebookStep>
 

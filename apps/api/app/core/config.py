@@ -98,6 +98,14 @@ class Settings(BaseModel):
     review_provider_api_key: str | None = None
     review_provider_timeout_seconds: float = 30.0
     review_fetch_max: int = 100
+    review_fetch_sort_modes: list[str] = [
+        "qualityScore",
+        "newestFirst",
+        "ratingLow",
+        "ratingHigh",
+    ]
+    review_fetch_max_pages_per_mode: int = 3
+    review_fetch_bypass_cache: bool = True
     max_import_file_bytes: int = 2 * 1024 * 1024
     llm_provider: str = "openai"
     openai_api_key: str | None = None
@@ -151,6 +159,20 @@ class Settings(BaseModel):
         self.review_fetch_max = int(
             os.getenv("REVIEW_FETCH_MAX", self.review_fetch_max)
         )
+        sort_modes = os.getenv("REVIEW_FETCH_SORT_MODES")
+        if sort_modes:
+            self.review_fetch_sort_modes = [
+                mode.strip() for mode in sort_modes.split(",") if mode.strip()
+            ]
+        self.review_fetch_max_pages_per_mode = int(
+            os.getenv(
+                "REVIEW_FETCH_MAX_PAGES_PER_MODE",
+                self.review_fetch_max_pages_per_mode,
+            )
+        )
+        self.review_fetch_bypass_cache = os.getenv(
+            "REVIEW_FETCH_BYPASS_CACHE", str(self.review_fetch_bypass_cache)
+        ).lower() in {"1", "true", "yes", "on"}
         self.max_import_file_bytes = int(
             os.getenv("MAX_IMPORT_FILE_BYTES", self.max_import_file_bytes)
         )

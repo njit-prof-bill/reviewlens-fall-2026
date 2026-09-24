@@ -6,6 +6,7 @@ or joins to the target and filters on the owner (S1-BR-009).
 """
 
 import uuid
+from collections import defaultdict
 from datetime import datetime
 
 from sqlalchemy import func, select
@@ -94,6 +95,25 @@ def build_summary(session: Session, target: AnalysisTarget) -> dict:
     ).one()
 
     count, average, earliest, latest = aggregates
+    current_reviews = list(
+        session.scalars(
+            select(Review).where(
+                Review.analysis_target_id == target.id, Review.is_current.is_(True)
+            )
+        )
+    )
+    rating_counts = {rating: 0 for rating in range(1, 6)}
+    monthly_counts: defaultdict[str, int] = defaultdict(int)
+    monthly_ratings: defaultdict[str, list[float]] = defaultdict(list)
+    for review in current_reviews:
+        rounded_rating = round(review.rating)
+        if rounded_rating in rating_counts:
+            rating_counts[rounded_rating] += 1
+        if review.reviewed_at:
+            period = review.reviewed_at.strftime("%Y-%m")
+            monthly_counts[period] += 1
+            monthly_ratings[period].append(review.rating)
+
     return {
         "entity_name": target.name,
         "platform": target.platform,
@@ -103,4 +123,21 @@ def build_summary(session: Session, target: AnalysisTarget) -> dict:
         "earliest_review": earliest,
         "latest_review": latest,
         "latest_run": get_latest_run(session, target.id),
+        "rating_distribution": [
+            {"rating": rating, "count": rating_counts[rating]}
+            for rating in sorted(rating_counts)
+        ],
+        "review_volume_by_month": [
+            {"period": period, "count": monthly_counts[period]}
+            for period in sorted(monthly_counts)
+        ],
+        "average_rating_by_month": [
+            {
+                "period": period,
+                "average_rating": round(
+                    sum(monthly_ratings[period]) / len(monthly_ratings[period]), 2
+                ),
+            }
+            for period in sorted(monthly_ratings)
+        ],
     }

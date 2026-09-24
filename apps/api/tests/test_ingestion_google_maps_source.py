@@ -6,6 +6,7 @@ No test in this module touches the network.
 import json
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from app.db.models import AnalysisTarget
@@ -47,11 +48,50 @@ class TestExtractDataId:
     def test_reads_the_place_identifier_from_a_maps_url(self):
         assert extract_data_id(PLACE_URL) == "0x8085808f0b0b0b0b:0x1234abcd"
 
+    def test_uses_the_selected_place_when_url_contains_nested_places(self):
+        nested_url = (
+            "https://www.google.com/maps/place/Complete+Care+at+Madison/"
+            "data=!1s0x89c3ccdcc9e3db0f:0x60ddc2908f3b0be3!2sBagel+Time+%26+Deli"
+            "!1s0x89c3cc9351a4d2e5:0x8a5fd50dd9f70cd8"
+        )
+
+        assert extract_data_id(nested_url) == "0x89c3cc9351a4d2e5:0x8a5fd50dd9f70cd8"
+
     def test_returns_none_when_the_url_has_no_identifier(self):
         assert extract_data_id("https://www.google.com/maps/place/Cafe") is None
 
 
 class TestSuccessfulCollection:
+    def test_uses_multiple_sort_modes_and_bypasses_provider_cache(self, target):
+        requested_urls: list[str] = []
+
+        def fetch(url: str, timeout: float) -> dict:
+            requested_urls.append(url)
+            return _load("serpapi_google_maps_reviews_page2.json")
+
+        provider = GoogleMapsReviewProvider(
+            api_key="test-key",
+            max_reviews=10,
+            sort_modes=("newestFirst", "ratingLow", "ratingHigh"),
+            max_pages_per_mode=1,
+            bypass_cache=True,
+            fetch_json=fetch,
+        )
+
+        provider.fetch(target)
+
+        assert [
+            parse_qs(urlparse(url).query)["sort_by"][0] for url in requested_urls
+        ] == [
+            "newestFirst",
+            "ratingLow",
+            "ratingHigh",
+        ]
+        assert all(
+            parse_qs(urlparse(url).query)["no_cache"] == ["true"]
+            for url in requested_urls
+        )
+
     def test_maps_a_recorded_response_onto_raw_reviews(self, target):
         provider = GoogleMapsReviewProvider(
             api_key="test-key",
