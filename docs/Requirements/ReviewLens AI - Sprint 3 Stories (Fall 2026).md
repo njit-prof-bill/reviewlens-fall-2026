@@ -433,19 +433,62 @@ Pagination or incremental loading is acceptable for larger datasets.
 
 **Rules:** S3-BR-023, S3-BR-024
 
-## S3-016 - Filter Reviews by Rating and Date
+## S3-016 - Filter the Active Review Dataset
 
 **Outcome:**
-A user can narrow the active review dataset using useful filters.
+A user can apply rating and date filters to the active analysis and see only matching reviews throughout the review-browsing experience.
 
 **Technical Guidance:**
 
-At minimum support:
+The filtering interface must support:
 
-1. Rating filter.
-2. Date or date-range filter when source dates are available.
+1. A minimum rating.
+2. A maximum rating.
+3. A start date when review dates are available.
+4. An end date when review dates are available.
 
-Filtering should operate on the active persisted dataset and should not affect another user's data.
+The minimum and maximum rating fields define an inclusive rating range. For example:
+
+- Minimum `1`, maximum `2` shows one- and two-star reviews.
+- Minimum `4`, maximum `5` shows four- and five-star reviews.
+- Maximum `2` shows reviews rated two stars or below.
+- Minimum `4` shows reviews rated four stars or above.
+
+The start and end dates define an inclusive date range. Reviews without a source date must not match a date filter.
+
+When multiple filters are provided, they must be combined using AND semantics. A review must satisfy every active filter to be included.
+
+Filters must operate against the active AnalysisTarget's current persisted review dataset. They must not query another AnalysisTarget, another ingestion dataset, or another user's data.
+
+The user must be able to:
+
+1. Review pending filter selections before applying them.
+2. Apply the selected filters.
+3. Cancel pending changes without changing the current results.
+4. Clear all active filters and return to the complete current dataset.
+
+After filters are applied:
+
+1. The Review Preview must display only matching reviews.
+2. The complete review browser must display only matching reviews.
+3. The displayed matching-review count must update.
+4. Pagination or incremental loading, if used, must operate on the filtered result set.
+5. The active filter state must be visually apparent.
+6. A zero-result state must clearly indicate that no reviews match the selected filters and must not be presented as an ingestion failure.
+
+The filtering operation must not mutate persisted reviews, the AnalysisTarget, ingestion history, Q&A history, or the underlying current dataset.
+
+Automated tests must verify:
+
+1. Minimum-rating filtering.
+2. Maximum-rating filtering.
+3. Combined minimum and maximum rating filtering.
+4. Inclusive date-range filtering.
+5. Combined rating and date filtering.
+6. Clearing filters.
+7. Zero matching results.
+8. Filtered results remain scoped to the active AnalysisTarget.
+9. Cross-user filtering is denied or isolated according to the application's ownership rules.
 
 The team may add search or other filters after the required behavior is complete.
 
