@@ -59,7 +59,7 @@ describe('IngestionSummaryCard', () => {
 
     expect(screen.getByText('Complete')).toBeInTheDocument()
     expect(screen.getAllByText('18').length).toBeGreaterThanOrEqual(2)
-    expect(screen.getAllByText('4.3').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('4.3')).toBeInTheDocument()
     expect(screen.getByText('Blue Bottle Coffee')).toBeInTheDocument()
     expect(screen.getByText('Google Maps')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /filter to 5 star reviews/i })).toBeInTheDocument()

@@ -97,8 +97,9 @@ def build_summary(session: Session, target: AnalysisTarget) -> dict:
     count, average, earliest, latest = aggregates
     current_reviews = list(
         session.scalars(
-            select(Review)
-            .where(Review.analysis_target_id == target.id, Review.is_current.is_(True))
+            select(Review).where(
+                Review.analysis_target_id == target.id, Review.is_current.is_(True)
+            )
         )
     )
     rating_counts = {rating: 0 for rating in range(1, 6)}

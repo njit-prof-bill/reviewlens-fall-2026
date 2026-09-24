@@ -52,6 +52,24 @@ function ChartHeading({ title, detail }: { title: string; detail: string }) {
   )
 }
 
+function formatMonth(period: string): string {
+  const [year, month] = period.split('-').map(Number)
+  if (!year || !month) return period
+  return `${new Intl.DateTimeFormat('en', { month: 'short' }).format(
+    new Date(Date.UTC(year, month - 1, 1)),
+  )} '${String(year).slice(-2)}`
+}
+
+function shouldShowMonthLabel(index: number, count: number): boolean {
+  if (count <= 6) return true
+  const interval = (count - 1) / 5
+  return (
+    index === 0 ||
+    index === count - 1 ||
+    Math.abs(index / interval - Math.round(index / interval)) < 0.01
+  )
+}
+
 function RatingDistribution({
   distribution,
   onRatingFilter,
@@ -100,14 +118,16 @@ function MonthlyVolumeChart({ volume }: { volume: Array<{ period: string; count:
         role="img"
         aria-label="Monthly review volume chart"
       >
-        {visible.map((point) => (
+        {visible.map((point, index) => (
           <div key={point.period} className="flex min-w-0 flex-col items-center gap-1">
             <span className="text-[10px] tabular-nums text-muted-foreground">{point.count}</span>
             <span
               className="w-full rounded-t-sm bg-emerald-500/70"
               style={{ height: `${Math.max((point.count / maximum) * 64, 4)}px` }}
             />
-            <span className="truncate text-[10px] text-muted-foreground">{point.period.slice(2)}</span>
+            <span className="h-3 truncate text-[10px] text-muted-foreground">
+              {shouldShowMonthLabel(index, visible.length) ? formatMonth(point.period) : ''}
+            </span>
           </div>
         ))}
       </div>
@@ -124,26 +144,42 @@ function AverageRatingChart({
     return <p className="text-sm text-muted-foreground">No dated reviews are available.</p>
   }
   const visible = averages.slice(-12)
+  const chartWidth = 240
+  const chartTop = 8
+  const chartBottom = 60
+  const xStep = visible.length > 1 ? chartWidth / (visible.length - 1) : 0
+  const points = visible
+    .map((point, index) => {
+      const x = visible.length > 1 ? index * xStep : chartWidth / 2
+      const y = chartBottom - (point.average_rating / 5) * (chartBottom - chartTop)
+      return `${x},${y}`
+    })
+    .join(' ')
   return (
     <div className="space-y-3">
       <ChartHeading title="Average rating over time" detail="monthly average, latest 12 months" />
-      <div
-        className="grid min-h-28 grid-flow-col auto-cols-fr items-end gap-1.5"
-        role="img"
-        aria-label="Average rating over time chart"
-      >
-        {visible.map((point) => (
-          <div key={point.period} className="flex min-w-0 flex-col items-center gap-1">
-            <span className="text-[10px] tabular-nums text-muted-foreground">
-              {point.average_rating.toFixed(1)}
+      <div role="img" aria-label="Average rating over time chart">
+        <svg
+          viewBox={`0 0 ${chartWidth} 76`}
+          className="h-20 w-full overflow-visible"
+          aria-hidden="true"
+        >
+          <line x1="0" y1={chartTop} x2={chartWidth} y2={chartTop} stroke="currentColor" strokeOpacity="0.12" />
+          <line x1="0" y1={chartBottom} x2={chartWidth} y2={chartBottom} stroke="currentColor" strokeOpacity="0.2" />
+          <polyline points={points} fill="none" stroke="rgb(245 158 11)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          {visible.map((point, index) => {
+            const x = visible.length > 1 ? index * xStep : chartWidth / 2
+            const y = chartBottom - (point.average_rating / 5) * (chartBottom - chartTop)
+            return <circle key={point.period} cx={x} cy={y} r="2.5" fill="rgb(245 158 11)" />
+          })}
+        </svg>
+        <div className="grid grid-cols-6 text-[10px] text-muted-foreground">
+          {visible.map((point, index) => (
+            <span key={point.period} className="truncate text-center">
+              {shouldShowMonthLabel(index, visible.length) ? formatMonth(point.period) : ''}
             </span>
-            <span
-              className="w-full rounded-t-sm bg-amber-500/75"
-              style={{ height: `${Math.max((point.average_rating / 5) * 64, 4)}px` }}
-            />
-            <span className="truncate text-[10px] text-muted-foreground">{point.period.slice(2)}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
