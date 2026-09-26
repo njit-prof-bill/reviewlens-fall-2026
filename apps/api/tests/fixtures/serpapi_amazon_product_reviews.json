@@ -1,7 +1,8 @@
 {
   "product_results": {
     "asin": "B012345678",
-    "title": "Example Wireless Headphones"
+    "title": "Example Wireless Headphones",
+    "reviews": 2
   },
   "reviews_information": {
     "summary": {

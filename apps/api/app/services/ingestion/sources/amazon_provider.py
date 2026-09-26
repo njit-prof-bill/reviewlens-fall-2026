@@ -124,6 +124,17 @@ class AmazonProductReviewProvider:
         reviews_information = payload.get("reviews_information") or {}
         entries = reviews_information.get("authors_reviews") or []
         if not entries:
+            reported_review_count = product.get("reviews")
+            try:
+                has_reported_reviews = int(reported_review_count or 0) > 0
+            except (TypeError, ValueError):
+                has_reported_reviews = False
+            if has_reported_reviews:
+                raise IngestionError(
+                    IngestionErrorCode.INDIVIDUAL_REVIEWS_UNAVAILABLE,
+                    f"Amazon reports {reported_review_count} reviews for ASIN {asin}, "
+                    "but the provider returned no individual authored reviews",
+                )
             raise IngestionError(IngestionErrorCode.NO_REVIEWS_AVAILABLE)
 
         reviews = [_map_review(entry) for entry in entries[: self._max_reviews]]

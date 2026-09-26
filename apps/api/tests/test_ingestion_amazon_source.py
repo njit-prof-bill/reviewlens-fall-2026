@@ -86,7 +86,29 @@ class TestAmazonProductReviewProvider:
         assert exc_info.value.code == IngestionErrorCode.PRODUCT_NOT_FOUND
 
     def test_empty_authored_reviews_are_not_replaced_with_a_summary(self):
-        payload = {"product_results": {"title": "Example"}, "reviews_information": {}}
+        payload = {
+            "product_results": {"title": "Example", "reviews": 419},
+            "reviews_information": {
+                "summary": {
+                    "text": "Summary only",
+                    "insights": [{"examples": [{"snippet": "No rating here."}]}],
+                }
+            },
+        }
+        provider = AmazonProductReviewProvider(
+            api_key="test-key", fetch_json=lambda *_: payload
+        )
+
+        with pytest.raises(IngestionError) as exc_info:
+            provider.fetch(_target())
+
+        assert exc_info.value.code == IngestionErrorCode.INDIVIDUAL_REVIEWS_UNAVAILABLE
+
+    def test_zero_reported_reviews_uses_the_no_reviews_error(self):
+        payload = {
+            "product_results": {"title": "Example", "reviews": 0},
+            "reviews_information": {},
+        }
         provider = AmazonProductReviewProvider(
             api_key="test-key", fetch_json=lambda *_: payload
         )

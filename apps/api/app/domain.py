@@ -36,6 +36,7 @@ class IngestionErrorCode(StrEnum):
     PLACE_NOT_FOUND = "place_not_found"
     PRODUCT_NOT_FOUND = "product_not_found"
     NO_REVIEWS_AVAILABLE = "no_reviews_available"
+    INDIVIDUAL_REVIEWS_UNAVAILABLE = "individual_reviews_unavailable"
     SOURCE_UNPARSEABLE = "source_unparseable"
     NO_USABLE_REVIEWS = "no_usable_reviews"
     UNEXPECTED_ERROR = "unexpected_error"
@@ -83,6 +84,9 @@ INGESTION_ERROR_MESSAGES: dict[IngestionErrorCode, str] = {
     ),
     IngestionErrorCode.NO_REVIEWS_AVAILABLE: (
         "This listing has no reviews available to collect."
+    ),
+    IngestionErrorCode.INDIVIDUAL_REVIEWS_UNAVAILABLE: (
+        "Amazon reports reviews for this product, but the review provider did not return individual reviews with ratings. Try again later or import a review file."
     ),
     IngestionErrorCode.SOURCE_UNPARSEABLE: (
         "The review data could not be read. Check the file format and try again."

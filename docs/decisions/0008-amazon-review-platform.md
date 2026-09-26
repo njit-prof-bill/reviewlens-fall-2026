@@ -55,6 +55,12 @@ this is a post-capstone extension.
   of records. Collection is limited to the individual records returned in that
   response, and a live-provider smoke test is still required before relying on
   dataset size for a demo.
+- Live verification for ASIN `B0B4KJW4HC` returned a product count of 419 but
+  only `reviews_information.summary` (including aggregate insights and snippets),
+  with no `authors_reviews`, in both desktop and mobile requests. The adapter
+  reports this as unavailable individual reviews rather than claiming the
+  product has none; insight snippets lack ratings and are not promoted as
+  persisted Review records.
 - The documented authored-review schema does not include a stable review ID or
   review URL. ReviewLens therefore uses its deterministic content fingerprint
   for deduplication; changes to a review's stable fingerprint fields may be
