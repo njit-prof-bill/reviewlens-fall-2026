@@ -1,0 +1,31 @@
+{
+  "product_results": {
+    "asin": "B012345678",
+    "title": "Example Wireless Headphones"
+  },
+  "reviews_information": {
+    "summary": {
+      "text": "Provider-generated summary must not become a review."
+    },
+    "authors_reviews": [
+      {
+        "position": 1,
+        "title": "Comfortable for long sessions",
+        "text": "The ear cups remain comfortable during long calls.",
+        "rating": 5.0,
+        "date": "July 15, 2026",
+        "author": "Reviewer One"
+      },
+      {
+        "position": 2,
+        "title": "Good sound, short cable",
+        "text": "The sound is clear, although the cable could be longer.",
+        "rating": 4.0,
+        "date": "Jun 4, 2026",
+        "author": "Reviewer Two",
+        "verified_purchase": true,
+        "helpful_votes": "3 people found this helpful"
+      }
+    ]
+  }
+}

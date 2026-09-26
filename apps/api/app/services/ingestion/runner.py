@@ -25,6 +25,7 @@ from app.domain import (
 )
 from app.services.ingestion.base import IngestionError, ReviewSource
 from app.services.ingestion.normalizer import NormalizedReview, normalize_all
+from app.services.source_url import derive_working_name
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +181,11 @@ def execute_ingestion_run(
             )
             return
 
-        if result.entity_name and target.name == "Untitled Analysis":
+        generated_name = derive_working_name(target.source_url)
+        if result.entity_name and (
+            target.name == "Untitled Analysis"
+            or (target.platform == "amazon" and target.name == generated_name)
+        ):
             target.name = result.entity_name[:200]
             session.add(target)
 

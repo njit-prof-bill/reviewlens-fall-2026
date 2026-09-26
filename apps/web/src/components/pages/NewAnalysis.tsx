@@ -1,14 +1,15 @@
-import { Loader2, Search } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useCreateAnalysisTarget } from '@/hooks/useAnalysis'
 import { startUrlIngestion } from '@/lib/api/analysisTargets'
 import { ApiError } from '@/lib/api/client'
 import { useApiToken } from '@/hooks/useApiToken'
-import { deriveWorkingName, validateSourceUrl } from '@/lib/sourceUrl'
+import { deriveWorkingName, detectSourcePlatform, validateSourceUrl } from '@/lib/sourceUrl'
 
 /**
  * Deliberately sparse: a URL field and one action, per the reference wireframe.
@@ -21,6 +22,7 @@ export function NewAnalysis() {
   const createTarget = useCreateAnalysisTarget()
   const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const detectedPlatform = detectSourcePlatform(url)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -53,36 +55,51 @@ export function NewAnalysis() {
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         Analyze customer reviews
       </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Paste a Google Maps link to a business and ReviewLens will collect its reviews.
-      </p>
-
       <form onSubmit={handleSubmit} className="mt-8 space-y-3" noValidate>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Input
-            type="url"
-            value={url}
-            onChange={(event) => {
-              setUrl(event.target.value)
-              setError(null)
-            }}
-            placeholder="https://www.google.com/maps/place/..."
-            aria-label="Google Maps URL"
-            aria-invalid={error !== null}
-            className="h-11 flex-1"
-          />
-          <Button type="submit" size="lg" disabled={createTarget.isPending}>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-2">
+          <div className="min-w-0 flex-1 space-y-2">
+            <Label htmlFor="source-url">URL</Label>
+            <Input
+              id="source-url"
+              type="url"
+              value={url}
+              onChange={(event) => {
+                setUrl(event.target.value)
+                setError(null)
+              }}
+              placeholder="Paste a source URL"
+              aria-invalid={error !== null}
+              aria-describedby={error ? 'source-url-hint source-url-error' : 'source-url-hint'}
+              className="h-11"
+            />
+          </div>
+          <Button
+            type="submit"
+            variant="default"
+            size="icon-lg"
+            className="size-11"
+            disabled={createTarget.isPending}
+            aria-label="Start analysis"
+            title="Start analysis"
+          >
             {createTarget.isPending ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Search className="size-4" />
+              <ArrowRight className="size-4" />
             )}
-            Analyze Reviews
           </Button>
+          <p id="source-url-hint" className="col-span-2 text-xs text-muted-foreground">
+            Paste a Google Maps place or Amazon.com product URL.
+            {detectedPlatform ? (
+              <span className="ml-2 font-medium text-foreground" aria-live="polite">
+                Detected: {detectedPlatform === 'amazon' ? 'Amazon' : 'Google Maps'}
+              </span>
+            ) : null}
+          </p>
         </div>
 
         {error ? (
-          <p role="alert" className="text-sm text-destructive">
+          <p id="source-url-error" role="alert" className="text-sm text-destructive">
             {error}
           </p>
         ) : null}

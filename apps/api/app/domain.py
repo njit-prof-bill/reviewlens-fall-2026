@@ -5,6 +5,7 @@ from enum import StrEnum
 
 class ReviewPlatform(StrEnum):
     GOOGLE_MAPS = "google_maps"
+    AMAZON = "amazon"
 
 
 class IngestionStatus(StrEnum):
@@ -33,6 +34,7 @@ class IngestionErrorCode(StrEnum):
     PROVIDER_UNAVAILABLE = "provider_unavailable"
     PROVIDER_QUOTA_EXCEEDED = "provider_quota_exceeded"
     PLACE_NOT_FOUND = "place_not_found"
+    PRODUCT_NOT_FOUND = "product_not_found"
     NO_REVIEWS_AVAILABLE = "no_reviews_available"
     SOURCE_UNPARSEABLE = "source_unparseable"
     NO_USABLE_REVIEWS = "no_usable_reviews"
@@ -75,6 +77,9 @@ INGESTION_ERROR_MESSAGES: dict[IngestionErrorCode, str] = {
     ),
     IngestionErrorCode.PLACE_NOT_FOUND: (
         "No business could be found at that URL. Check the link and try again."
+    ),
+    IngestionErrorCode.PRODUCT_NOT_FOUND: (
+        "No product could be found at that URL. Check the Amazon product link and try again."
     ),
     IngestionErrorCode.NO_REVIEWS_AVAILABLE: (
         "This listing has no reviews available to collect."

@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { DeleteAnalysisDialog } from '@/components/analysis/DeleteAnalysisDialog'
 import { RenameAnalysisDialog } from '@/components/analysis/RenameAnalysisDialog'
 import { SaveAsAnalysisDialog } from '@/components/analysis/SaveAsAnalysisDialog'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAnalysisTargets } from '@/hooks/useAnalysis'
-import type { AnalysisTarget } from '@/lib/api/types'
+import { platformLabel, type AnalysisTarget } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 
 interface AnalysisSidebarProps extends React.HTMLAttributes<HTMLElement> {
@@ -80,7 +81,7 @@ export function AnalysisSidebar({
 
         {targets && targets.length === 0 ? (
           <p className="px-2 text-sm text-muted-foreground">
-            No analyses yet. Paste a Google Maps link to create your first one.
+            No analyses yet. Paste a supported review-platform link to create your first one.
           </p>
         ) : null}
 
@@ -103,7 +104,12 @@ export function AnalysisSidebar({
                     onClick={onNavigate}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <span className="truncate">{target.name}</span>
+                    <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                      <span className="truncate">{target.name}</span>
+                      <Badge variant="outline" className="shrink-0 px-1.5 text-[10px]">
+                        {platformLabel(target.platform)}
+                      </Badge>
+                    </span>
                   </Link>
                 </Button>
 

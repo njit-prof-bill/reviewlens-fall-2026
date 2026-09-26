@@ -30,8 +30,12 @@ describe('NewAnalysis', () => {
   it('shows only the URL field and the analyze action', () => {
     renderWithProviders(<NewAnalysis />)
 
-    expect(screen.getByLabelText('Google Maps URL')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /analyze reviews/i })).toBeInTheDocument()
+    expect(screen.getByLabelText('URL')).toBeInTheDocument()
+    expect(screen.getByText('Paste a Google Maps place or Amazon.com product URL.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start analysis' })).toHaveAttribute(
+      'title',
+      'Start analysis',
+    )
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
@@ -39,10 +43,10 @@ describe('NewAnalysis', () => {
     const user = userEvent.setup()
     renderWithProviders(<NewAnalysis />)
 
-    await user.type(screen.getByLabelText('Google Maps URL'), 'https://www.yelp.com/biz/x')
-    await user.click(screen.getByRole('button', { name: /analyze reviews/i }))
+    await user.type(screen.getByLabelText('URL'), 'https://www.yelp.com/biz/x')
+    await user.click(screen.getByRole('button', { name: 'Start analysis' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Google Maps links only/)
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Google Maps place links and Amazon.com product links/)
     expect(createAnalysisTarget).not.toHaveBeenCalled()
   })
 
@@ -50,7 +54,7 @@ describe('NewAnalysis', () => {
     const user = userEvent.setup()
     renderWithProviders(<NewAnalysis />)
 
-    await user.click(screen.getByRole('button', { name: /analyze reviews/i }))
+    await user.click(screen.getByRole('button', { name: 'Start analysis' }))
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(createAnalysisTarget).not.toHaveBeenCalled()
@@ -60,8 +64,8 @@ describe('NewAnalysis', () => {
     const user = userEvent.setup()
     renderWithProviders(<NewAnalysis />)
 
-    await user.type(screen.getByLabelText('Google Maps URL'), PLACE_URL)
-    await user.click(screen.getByRole('button', { name: /analyze reviews/i }))
+    await user.type(screen.getByLabelText('URL'), PLACE_URL)
+    await user.click(screen.getByRole('button', { name: 'Start analysis' }))
 
     await waitFor(() => expect(createAnalysisTarget).toHaveBeenCalled())
     expect(createAnalysisTarget.mock.calls[0][0]).toEqual({
@@ -70,6 +74,23 @@ describe('NewAnalysis', () => {
     })
     await waitFor(() => expect(startUrlIngestion).toHaveBeenCalled())
     expect(navigate).toHaveBeenCalledWith('/analysis/target-1?run=run-1')
+  })
+
+  it('detects and creates an Amazon analysis from a product URL', async () => {
+    const user = userEvent.setup()
+    const amazonUrl = 'https://www.amazon.com/Example-Headphones/dp/B012345678'
+    renderWithProviders(<NewAnalysis />)
+
+    await user.type(screen.getByLabelText('URL'), amazonUrl)
+    expect(screen.getByText('Detected: Amazon')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Start analysis' }))
+
+    await waitFor(() => expect(createAnalysisTarget).toHaveBeenCalled())
+    expect(createAnalysisTarget.mock.calls[0][0]).toEqual({
+      name: 'Amazon Product B012345678',
+      source_url: amazonUrl,
+    })
+    await waitFor(() => expect(startUrlIngestion).toHaveBeenCalled())
   })
 
   it('surfaces a server validation message without exposing internals', async () => {
@@ -82,8 +103,8 @@ describe('NewAnalysis', () => {
     const user = userEvent.setup()
     renderWithProviders(<NewAnalysis />)
 
-    await user.type(screen.getByLabelText('Google Maps URL'), PLACE_URL)
-    await user.click(screen.getByRole('button', { name: /analyze reviews/i }))
+    await user.type(screen.getByLabelText('URL'), PLACE_URL)
+    await user.click(screen.getByRole('button', { name: 'Start analysis' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       /not a Google Maps place/,

@@ -7,7 +7,7 @@ function ScopeRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="break-words text-sm font-medium text-foreground">{value}</dd>
+      <dd className="wrap-break-word text-sm font-medium text-foreground">{value}</dd>
     </div>
   )
 }
@@ -26,7 +26,10 @@ export function CurrentAnalysisScopePanel({ summary }: CurrentAnalysisScopePanel
       </CardHeader>
       <CardContent className="space-y-4">
         <dl className="space-y-4">
-          <ScopeRow label="Business" value={summary.entity_name} />
+          <ScopeRow
+            label={summary.platform === 'amazon' ? 'Product' : 'Business'}
+            value={summary.entity_name}
+          />
           <ScopeRow label="Platform" value={platformLabel(summary.platform)} />
           <ScopeRow label="Reviews analyzed" value={String(summary.reviews_collected)} />
           <ScopeRow

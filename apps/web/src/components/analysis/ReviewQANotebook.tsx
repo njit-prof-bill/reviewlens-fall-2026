@@ -29,7 +29,7 @@ function Evidence({ entry }: { entry: QAEntry }) {
         >
           <p className="break-words">“{item.excerpt}”</p>
           <footer className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-            <span>{item.reviewer_name ?? 'Google Maps reviewer'}</span>
+            <span>{item.reviewer_name ?? 'Review author'}</span>
             {item.rating !== null ? (
               <span className="inline-flex items-center gap-1" aria-label={`${item.rating} stars`}>
                 <Star className="size-3 fill-current" aria-hidden="true" />
