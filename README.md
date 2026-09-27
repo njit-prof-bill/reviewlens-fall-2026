@@ -187,6 +187,30 @@ Before a Sprint 3 demo, prepare User A and User B data as described in
 `docs/Sprint Demos/Sprint3Demo.md`, then validate locally and from the public
 CloudFront URL.
 
+## Review Source Support
+
+New analyses accept one Google Maps place URL or one `amazon.com` product URL
+containing an ASIN. The platform is detected from the URL; each saved analysis
+keeps its own source and review dataset. Amazon search and storefront links are
+not accepted.
+
+Amazon URL ingestion uses SerpApi's Amazon Product API and stores individual
+authored review records only, not provider-generated summaries. The provider's
+documented response does not guarantee pagination or a minimum review count, so
+the workspace reports only the actual records received. A live source smoke test
+and review of the provider's current collection and persistence terms are needed
+before relying on a dataset size for a demo.
+The documented Amazon review records have no stable review ID or review link,
+so refresh deduplication uses ReviewLens's deterministic content fingerprint.
+
+Provider credentials remain server-side in `REVIEW_PROVIDER_API_KEY`.
+`REVIEW_PROVIDER` selects the primary registered adapter, and optional
+`REVIEW_PROVIDER_FALLBACKS` lists fallback adapters in order. Currently only
+SerpApi is registered. Additional providers require an adapter and tests for
+response mapping, review identity compatibility, cost, and data terms before
+they can be configured. Capstone delivery with two platforms requires
+instructor approval under the Sprint 1 one-platform requirement.
+
 ### Stop Local Dev Environment
 
 1. Stop frontend and backend with `Ctrl+C` in their terminals.

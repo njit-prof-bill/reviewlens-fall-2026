@@ -45,6 +45,25 @@ describe('AnalysisSidebar', () => {
 
     expect(await screen.findByText('Blue Bottle Coffee')).toBeInTheDocument()
     expect(screen.queryByText(SOURCE_URL)).not.toBeInTheDocument()
+    expect(screen.getByText('Google Maps')).toBeInTheDocument()
+  })
+
+  it('shows the source platform for Amazon analyses', async () => {
+    listAnalysisTargets.mockResolvedValue([
+      {
+        id: 'target-amazon',
+        name: 'Acme Headphones',
+        platform: 'amazon',
+        source_url: 'https://www.amazon.com/dp/B012345678',
+        created_at: '2026-09-01T00:00:00Z',
+        updated_at: '2026-09-01T00:00:00Z',
+      },
+    ])
+    renderWithProviders(<AnalysisSidebar isOpen />)
+
+    const link = await screen.findByRole('link', { name: /Acme Headphones.*Amazon/ })
+    expect(link).toBeInTheDocument()
+    expect(screen.getByText('Amazon')).toBeInTheDocument()
   })
 
   it('offers a New Analysis action', async () => {
@@ -79,7 +98,7 @@ describe('AnalysisSidebar', () => {
   it('marks the open analysis as the current page', async () => {
     renderWithProviders(<AnalysisSidebar isOpen />, { route: '/analysis/target-1' })
 
-    const link = await screen.findByRole('link', { name: 'Blue Bottle Coffee' })
+    const link = await screen.findByRole('link', { name: /Blue Bottle Coffee.*Google Maps/ })
     expect(link).toHaveAttribute('aria-current', 'page')
   })
 })

@@ -97,6 +97,7 @@ export interface QAEntryList {
 
 export const PLATFORM_LABELS: Record<string, string> = {
   google_maps: 'Google Maps',
+  amazon: 'Amazon',
 }
 
 export function platformLabel(platform: string): string {

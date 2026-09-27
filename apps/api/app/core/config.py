@@ -95,6 +95,7 @@ class Settings(BaseModel):
     clerk_audience: str | None = None
     clerk_secret_key: str | None = None
     review_provider: str = "serpapi"
+    review_provider_fallbacks: list[str] = []
     review_provider_api_key: str | None = None
     review_provider_timeout_seconds: float = 30.0
     review_fetch_max: int = 100
@@ -147,6 +148,13 @@ class Settings(BaseModel):
         self.clerk_audience = os.getenv("CLERK_AUDIENCE", self.clerk_audience)
         self.clerk_secret_key = os.getenv("CLERK_SECRET_KEY", self.clerk_secret_key)
         self.review_provider = os.getenv("REVIEW_PROVIDER", self.review_provider)
+        fallbacks = os.getenv("REVIEW_PROVIDER_FALLBACKS")
+        if fallbacks:
+            self.review_provider_fallbacks = [
+                provider.strip()
+                for provider in fallbacks.split(",")
+                if provider.strip()
+            ]
         self.review_provider_api_key = os.getenv(
             "REVIEW_PROVIDER_API_KEY", self.review_provider_api_key
         )

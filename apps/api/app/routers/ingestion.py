@@ -18,7 +18,10 @@ from app.schemas import (
 )
 from app.services import analysis_target_service, review_service
 from app.services.ingestion.runner import execute_ingestion_run, start_ingestion_run
-from app.services.ingestion.sources import FileImportSource, GoogleMapsReviewProvider
+from app.services.ingestion.sources import (
+    FileImportSource,
+    create_url_review_source,
+)
 
 router = APIRouter(tags=["ingestion"])
 
@@ -38,9 +41,20 @@ async def start_url_ingestion(
 ) -> IngestionRunResponse:
     """Collect reviews from the target's source URL (S1-019)."""
     target = analysis_target_service.get_owned_target(db, user.id, target_id)
+    try:
+        provider = create_url_review_source(target.platform)
+    except ValueError as exc:
+        raise AppValidationError(
+            "The review platform is not supported",
+            [
+                ApiErrorDetail(
+                    field="platform", issue="Choose a supported review source."
+                )
+            ],
+        ) from exc
     run = start_ingestion_run(db, target.id, IngestionSourceKind.URL_FETCH)
 
-    background_tasks.add_task(execute_ingestion_run, run.id, GoogleMapsReviewProvider())
+    background_tasks.add_task(execute_ingestion_run, run.id, provider)
     return IngestionRunResponse.model_validate(run)
 
 

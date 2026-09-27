@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { deriveWorkingName, validateSourceUrl } from '@/lib/sourceUrl'
+import {
+  deriveWorkingName,
+  detectSourcePlatform,
+  validateSourceUrl,
+} from '@/lib/sourceUrl'
 
 const PLACE_URL =
   'https://www.google.com/maps/place/Blue+Bottle+Coffee/@37.7823,-122.4074,17z'
@@ -14,6 +18,22 @@ describe('validateSourceUrl', () => {
     expect(validateSourceUrl('https://maps.app.goo.gl/AbCdEfGh')).toBeNull()
   })
 
+  it.each([
+    'https://www.amazon.com/dp/B012345678',
+    'https://amazon.com/Example-Product/dp/B012345678?th=1',
+    'https://www.amazon.com/gp/product/B012345678/',
+  ])('accepts an Amazon product link: %s', (url) => {
+    expect(validateSourceUrl(url)).toBeNull()
+  })
+
+  it.each([
+    'https://amazon.com/s?k=headphones',
+    'https://amazon.co.uk/dp/B012345678',
+    'https://amazon.com.evil.example/dp/B012345678',
+  ])('rejects unsupported Amazon links: %s', (url) => {
+    expect(validateSourceUrl(url)).not.toBeNull()
+  })
+
   it.each(['', '   ', 'not a url', 'ftp://google.com/maps/place/Cafe'])(
     'rejects malformed input: %s',
     (candidate) => {
@@ -23,7 +43,7 @@ describe('validateSourceUrl', () => {
 
   it('rejects a review site other than the supported platform', () => {
     expect(validateSourceUrl('https://www.yelp.com/biz/blue-bottle')).toMatch(
-      /Google Maps links only/,
+      /Google Maps place links and Amazon.com product links/,
     )
   })
 
@@ -41,5 +61,23 @@ describe('deriveWorkingName', () => {
 
   it('falls back to a placeholder when no slug is present', () => {
     expect(deriveWorkingName('https://maps.app.goo.gl/AbCdEfGh')).toBe('Untitled Analysis')
+  })
+
+  it('derives an Amazon working name from its ASIN', () => {
+    expect(deriveWorkingName('https://www.amazon.com/Example/dp/B012345678')).toBe(
+      'Amazon Product B012345678',
+    )
+  })
+})
+
+describe('detectSourcePlatform', () => {
+  it('detects Google Maps and Amazon product URLs', () => {
+    expect(detectSourcePlatform(PLACE_URL)).toBe('google_maps')
+    expect(detectSourcePlatform('https://www.amazon.com/dp/B012345678')).toBe('amazon')
+  })
+
+  it('does not detect invalid URLs', () => {
+    expect(detectSourcePlatform('https://amazon.com/s?k=headphones')).toBeNull()
+    expect(detectSourcePlatform('https://www.yelp.com/biz/x')).toBeNull()
   })
 })

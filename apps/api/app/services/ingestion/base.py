@@ -38,3 +38,34 @@ class IngestionError(Exception):
 
 class ReviewSource(Protocol):
     def fetch(self, target: AnalysisTarget) -> IngestionResult: ...
+
+
+class FallbackReviewSource:
+    """Try ordered providers only when the preceding provider is unavailable."""
+
+    _RETRYABLE = frozenset(
+        {
+            IngestionErrorCode.PROVIDER_TIMEOUT,
+            IngestionErrorCode.PROVIDER_UNAVAILABLE,
+            IngestionErrorCode.PROVIDER_QUOTA_EXCEEDED,
+        }
+    )
+
+    def __init__(self, sources: list[ReviewSource]):
+        if not sources:
+            raise ValueError("At least one review source is required")
+        self._sources = sources
+
+    def fetch(self, target: AnalysisTarget) -> IngestionResult:
+        last_error: IngestionError | None = None
+        for index, source in enumerate(self._sources):
+            try:
+                return source.fetch(target)
+            except IngestionError as exc:
+                if exc.code not in self._RETRYABLE or index == len(self._sources) - 1:
+                    raise
+                last_error = exc
+
+        if last_error:
+            raise last_error
+        raise IngestionError(IngestionErrorCode.PROVIDER_NOT_CONFIGURED)

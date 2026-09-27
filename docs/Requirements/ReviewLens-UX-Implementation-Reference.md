@@ -75,6 +75,7 @@ Examples:
 - Acme Wireless Headphones
 - Downtown Hotel Reviews
 - Restaurant A - Google Maps
+- Acme Headphones - Amazon
 
 ### 3.1 New Analysis
 
@@ -128,13 +129,16 @@ The experience should resemble the top area of the reference image before any an
 Suggested structure:
 
 **Header**
+
 - ReviewLens AI branding
 - New Analysis action
 - Optional lightweight Help / How It Works action
 
 **Main content**
-- URL input
-- Analyze Reviews button
+
+- URL input labeled **URL**
+- Helper text: “Paste a Google Maps place or Amazon.com product URL.”
+- Arrow-only submit button with an accessible name and tooltip
 
 Do not display empty summary cards, empty Q&A cards, or placeholder charts before an analysis exists.
 
@@ -146,20 +150,26 @@ The page should feel intentionally sparse.
 
 The URL input is the entry point to the analysis workflow.
 
-The user pastes a supported review-platform URL.
+The user pastes one supported review-platform URL. Each analysis represents one
+source; reviews from different platforms are not implicitly combined.
 
-Example:
+Examples:
 
 `https://www.google.com/maps/place/...`
 
-The primary button should be labeled:
+`https://www.amazon.com/dp/B012345678`
 
-**Analyze Reviews**
+The input is labeled **URL**. Helper text below it says:
+
+“Paste a Google Maps place or Amazon.com product URL.”
+
+The submit control is an arrow icon with an accessible name and tooltip of
+**Start analysis**. Its visible content remains icon-only.
 
 When selected:
 
 1. Validate the URL.
-2. Identify the source/platform.
+2. Identify the source/platform from the URL and show the detected platform.
 3. Begin ingestion.
 4. Show a clear processing state.
 5. Populate the analysis workspace as results become available.
@@ -307,7 +317,7 @@ A grounded answer should contain:
 4. Confidence or evidence-strength indicator when supported
 5. Supporting review excerpts
 
-The user should be able to understand *why* ReviewLens produced the answer.
+The user should be able to understand _why_ ReviewLens produced the answer.
 
 Supporting evidence is a key part of the visual design.
 

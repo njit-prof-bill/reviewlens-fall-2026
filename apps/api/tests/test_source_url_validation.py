@@ -1,6 +1,11 @@
 import pytest
+from app.domain import ReviewPlatform
 from app.errors import AppValidationError
-from app.services.source_url import derive_working_name, validate_source_url
+from app.services.source_url import (
+    derive_working_name,
+    detect_platform,
+    validate_source_url,
+)
 
 VALID_URL = (
     "https://www.google.com/maps/place/Blue+Bottle+Coffee/"
@@ -19,6 +24,43 @@ class TestValidateSourceUrl:
     def test_accepts_a_regional_google_domain(self):
         url = "https://www.google.co.uk/maps/place/Some+Cafe"
         assert validate_source_url(url) == url
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.amazon.com/dp/B012345678",
+            "https://amazon.com/Example-Product/dp/B012345678?th=1",
+            "https://www.amazon.com/gp/product/B012345678/",
+        ],
+    )
+    def test_accepts_amazon_product_urls(self, url):
+        assert validate_source_url(url) == url
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://amazon.com/s?k=headphones",
+            "https://amazon.com/stores/Brand/page/123",
+            "https://amazon.co.uk/dp/B012345678",
+            "https://notamazon.com/dp/B012345678",
+            "https://amazon.com.evil.example/dp/B012345678",
+            "https://amazon.com/dp/not-an-asin",
+        ],
+    )
+    def test_rejects_unsupported_amazon_urls(self, url):
+        with pytest.raises(AppValidationError) as exc_info:
+            validate_source_url(url)
+
+        assert exc_info.value.details[0].field == "source_url"
+
+    def test_detects_amazon_platform(self):
+        assert (
+            detect_platform("https://www.amazon.com/dp/B012345678")
+            == ReviewPlatform.AMAZON
+        )
+
+    def test_detects_google_maps_platform(self):
+        assert detect_platform(VALID_URL) == ReviewPlatform.GOOGLE_MAPS
 
     def test_trims_surrounding_whitespace(self):
         assert validate_source_url(f"  {VALID_URL}  ") == VALID_URL
@@ -54,3 +96,9 @@ class TestDeriveWorkingName:
 
     def test_returns_none_when_no_place_segment_is_present(self):
         assert derive_working_name("https://maps.app.goo.gl/AbCdEfGh123") is None
+
+    def test_derives_an_amazon_product_placeholder_from_the_asin(self):
+        assert (
+            derive_working_name("https://www.amazon.com/Example/dp/B012345678")
+            == "Amazon Product B012345678"
+        )

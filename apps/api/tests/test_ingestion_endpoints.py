@@ -14,6 +14,7 @@ VALID_URL = (
     "https://www.google.com/maps/place/Blue+Bottle+Coffee/"
     "@37.7823,-122.4074,17z/data=!4m6!3m5!1s0x8085808f0b0b0b0b:0x1234abcd"
 )
+AMAZON_URL = "https://www.amazon.com/Example-Headphones/dp/B012345678"
 
 
 class StubProvider:
@@ -31,7 +32,9 @@ class StubProvider:
 
 
 def _use_provider(monkeypatch, provider):
-    monkeypatch.setattr(ingestion_router, "GoogleMapsReviewProvider", lambda: provider)
+    monkeypatch.setattr(
+        ingestion_router, "create_url_review_source", lambda _platform: provider
+    )
 
 
 def _recorded_reviews():
@@ -67,6 +70,18 @@ def _subset_refresh_reviews():
     return _refreshed_reviews()[:2]
 
 
+def _amazon_reviews_without_source_ids():
+    return [
+        RawReview(
+            review_text="Comfortable for long sessions\n\n"
+            "The ear cups remain comfortable during long calls.",
+            rating=5,
+            reviewer_name="Reviewer One",
+            reviewed_at="2026-07-15",
+        )
+    ]
+
+
 def _create_target(client, name="Blue Bottle Coffee", source_url=VALID_URL):
     return client.post(
         "/api/v1/analysis-targets", json={"name": name, "source_url": source_url}
@@ -79,6 +94,47 @@ def target_a(client_factory, user_a):
 
 
 class TestUrlIngestion:
+    def test_amazon_target_is_dispatched_to_the_amazon_provider(
+        self, client_factory, user_a, monkeypatch
+    ):
+        provider = StubProvider(_recorded_reviews(), entity_name="Example Headphones")
+        requested_platforms = []
+        monkeypatch.setattr(
+            ingestion_router,
+            "create_url_review_source",
+            lambda platform: requested_platforms.append(platform) or provider,
+        )
+        client = client_factory(user_a)
+        target = _create_target(
+            client, name="Amazon Product B012345678", source_url=AMAZON_URL
+        )
+
+        started = client.post(f"/api/v1/analysis-targets/{target['id']}/ingestions")
+
+        assert target["platform"] == "amazon"
+        assert requested_platforms == ["amazon"]
+        assert started.status_code == 202
+        run = client.get(f"/api/v1/ingestion-runs/{started.json()['id']}").json()
+        assert run["status"] == "succeeded"
+        assert run["reviews_ingested"] == 4
+        updated = client.get(f"/api/v1/analysis-targets/{target['id']}").json()
+        assert updated["name"] == "Example Headphones"
+
+    def test_amazon_refresh_deduplicates_records_without_source_ids(
+        self, client_factory, user_a, monkeypatch
+    ):
+        client = client_factory(user_a)
+        target = _create_target(
+            client, name="Amazon Product B012345678", source_url=AMAZON_URL
+        )
+        _use_provider(monkeypatch, StubProvider(_amazon_reviews_without_source_ids()))
+
+        client.post(f"/api/v1/analysis-targets/{target['id']}/ingestions")
+        client.post(f"/api/v1/analysis-targets/{target['id']}/ingestions")
+
+        reviews = client.get(f"/api/v1/analysis-targets/{target['id']}/reviews").json()
+        assert reviews["total"] == 1
+
     def test_successful_run_persists_the_collected_reviews(
         self, client_factory, user_a, target_a, monkeypatch
     ):
