@@ -23,6 +23,11 @@ variable "llm_provider" {
   type    = string
   default = "openai"
 }
+variable "review_provider_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
 variable "openai_model" {
   type    = string
   default = "gpt-4.1-mini"
@@ -61,6 +66,9 @@ locals {
     local.container_secrets,
     var.openai_api_key_arn != "" ? [
       { name = "OPENAI_API_KEY", valueFrom = var.openai_api_key_arn },
+    ] : [],
+    var.review_provider_api_key_arn != "" ? [
+      { name = "REVIEW_PROVIDER_API_KEY", valueFrom = var.review_provider_api_key_arn },
     ] : [],
   )
 }
@@ -189,6 +197,7 @@ resource "aws_iam_role_policy" "execution_configuration" {
         var.clerk_issuer_param_arn,
         var.clerk_audience_param_arn,
         var.openai_api_key_arn,
+        var.review_provider_api_key_arn,
       ])
     }]
   })

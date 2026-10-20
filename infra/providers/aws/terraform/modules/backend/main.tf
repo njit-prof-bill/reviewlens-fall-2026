@@ -60,6 +60,12 @@ variable "llm_provider" {
   default = "openai"
 }
 
+variable "review_provider_api_key_arn" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
 variable "openai_model" {
   type    = string
   default = "gpt-4.1-mini"
@@ -166,7 +172,8 @@ resource "aws_iam_role_policy" "secrets_manager" {
         Resource = compact([
           var.clerk_secret_key_arn,
           var.database_url_arn,
-          var.openai_api_key_arn
+          var.openai_api_key_arn,
+          var.review_provider_api_key_arn
         ])
       }
     ]
@@ -245,6 +252,9 @@ resource "aws_apprunner_service" "main" {
           } : {},
           var.openai_api_key_arn != "" ? {
             "OPENAI_API_KEY" = var.openai_api_key_arn
+          } : {},
+          var.review_provider_api_key_arn != "" ? {
+            "REVIEW_PROVIDER_API_KEY" = var.review_provider_api_key_arn
           } : {}
         )
       }

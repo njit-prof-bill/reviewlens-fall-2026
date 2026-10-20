@@ -68,6 +68,13 @@ variable "openai_api_key_arn" {
   sensitive   = true
 }
 
+variable "review_provider_api_key_arn" {
+  description = "ARN of Secrets Manager secret containing REVIEW_PROVIDER_API_KEY for SerpApi"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "llm_provider" {
   description = "Review Q&A provider adapter"
   type        = string
