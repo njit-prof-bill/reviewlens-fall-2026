@@ -404,6 +404,8 @@ jobs:
             exit 1
           fi
 
+          echo "Migration task: $task_arn"
+
           for attempt in $(seq 1 90); do
             status=$(aws ecs describe-tasks --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
               --tasks "$task_arn" --query 'tasks[0].lastStatus' --output text)
@@ -412,6 +414,29 @@ jobs:
                 --tasks "$task_arn" --query 'tasks[0].containers[0].exitCode' --output text)
               [[ "$exit_code" == "0" ]] && exit 0
               echo "ECS migration task failed with exit code: $exit_code" >&2
+              aws ecs describe-tasks \
+                --cluster "${{ steps.infra.outputs.ecs_cluster_name }}" \
+                --tasks "$task_arn" \
+                --query 'tasks[0].{stopCode:stopCode,stoppedReason:stoppedReason,containers:containers[].{name:name,exitCode:exitCode,reason:reason}}' \
+                --output json || true
+
+              log_configuration=$(aws ecs describe-task-definition \
+                --task-definition "${{ steps.ecs-task-definitions.outputs.migration_task_definition_arn }}" \
+                --query 'taskDefinition.containerDefinitions[0].{name:name,options:logConfiguration.options}' \
+                --output json) || log_configuration='{}'
+              log_group=$(jq -r '.options["awslogs-group"] // empty' <<< "$log_configuration")
+              log_prefix=$(jq -r '.options["awslogs-stream-prefix"] // empty' <<< "$log_configuration")
+              container_name=$(jq -r '.name // empty' <<< "$log_configuration")
+              task_id="${task_arn##*/}"
+              if [[ -n "$log_group" && -n "$log_prefix" && -n "$container_name" ]]; then
+                log_stream="${log_prefix}/${container_name}/${task_id}"
+                echo "Migration logs: group=$log_group stream=$log_stream"
+                aws logs get-log-events \
+                  --log-group-name "$log_group" \
+                  --log-stream-name "$log_stream" \
+                  --limit 100 \
+                  --query 'events[].message' --output text || true
+              fi
               exit 1
             fi
             sleep 10
