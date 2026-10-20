@@ -1,4 +1,10 @@
+from io import StringIO
+from pathlib import Path
+
 import pytest
+from alembic import command
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from app.db.models.user import User
 from app.db.models.workspace import Workspace
 from app.db.models.workspace_member import WorkspaceMember
@@ -41,3 +47,20 @@ class TestPersistenceModels:
 
         with pytest.raises(IntegrityError):
             db_session.flush()
+
+
+@pytest.mark.parametrize("start", ["20260908_0004", "20260921_0004", "base"])
+def test_both_sprint_3_histories_can_upgrade_to_one_head(start):
+    api_root = Path(__file__).resolve().parents[1]
+    output = StringIO()
+    config = Config(str(api_root / "alembic.ini"), output_buffer=output)
+    config.set_main_option("script_location", str(api_root / "alembic"))
+    heads = ScriptDirectory.from_config(config).get_heads()
+    assert len(heads) == 1
+
+    command.upgrade(config, f"{start}:head", sql=True)
+
+    sql = output.getvalue()
+    assert ("ADD COLUMN review_identity_key" in sql) == (start != "20260921_0004")
+    assert ("ADD COLUMN dedupe_key" in sql) == (start != "20260908_0004")
+    assert heads[0] in sql
