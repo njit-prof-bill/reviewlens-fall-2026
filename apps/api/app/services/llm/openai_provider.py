@@ -1,9 +1,12 @@
 import json
+import logging
 
 from openai import AsyncOpenAI, OpenAIError
 
 from app.domain import QAResultKind
 from app.services.llm.base import LLMProviderError, LLMRequest, LLMResult
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIProvider:
@@ -72,4 +75,12 @@ class OpenAIProvider:
             ValueError,
             json.JSONDecodeError,
         ) as exc:
+            logger.warning(
+                "OpenAI answer failed: model=%s error_type=%s status=%s code=%s request_id=%s",
+                self.model,
+                type(exc).__name__,
+                getattr(exc, "status_code", None),
+                getattr(exc, "code", None),
+                getattr(exc, "request_id", None),
+            )
             raise LLMProviderError() from exc

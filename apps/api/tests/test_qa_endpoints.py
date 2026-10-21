@@ -1,10 +1,60 @@
+import asyncio
 import re
 import uuid
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
+import httpx
+import pytest
 from app.db.models import AnalysisTarget, Review
 from app.domain import QAResultKind
 from app.services import qa_service
-from app.services.llm import LLMProviderError, LLMRequest, LLMResult
+from app.services.llm import LLMProviderError, LLMRequest, LLMResult, openai_provider
+from openai import AuthenticationError, RateLimitError
+
+
+@pytest.mark.parametrize(
+    ("error_class", "status", "code"),
+    [
+        (AuthenticationError, 401, "invalid_api_key"),
+        (RateLimitError, 429, "insufficient_quota"),
+    ],
+)
+def test_openai_failure_logs_metadata_without_sensitive_content(
+    monkeypatch, caplog, error_class, status, code
+):
+    response = httpx.Response(
+        status,
+        request=httpx.Request("POST", "https://api.openai.com/v1/chat/completions"),
+        headers={"x-request-id": "request-test"},
+    )
+    error = error_class(
+        "SENSITIVE_KEY_AND_BODY",
+        response=response,
+        body={"code": code, "message": "SENSITIVE_KEY_AND_BODY"},
+    )
+    create = AsyncMock(side_effect=error)
+    client = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create))
+    )
+    monkeypatch.setattr(openai_provider, "AsyncOpenAI", lambda **_kwargs: client)
+    provider = openai_provider.OpenAIProvider("PRIVATE_KEY", "gpt-4.1-mini", 30)
+    request = LLMRequest("PRIVATE_PROMPT", "PRIVATE_REVIEWS", "PRIVATE_QUESTION")
+
+    with pytest.raises(LLMProviderError, match="temporarily unavailable"):
+        asyncio.run(provider.answer(request))
+
+    assert f"status={status}" in caplog.text
+    assert f"code={code}" in caplog.text
+    assert "request_id=request-test" in caplog.text
+    for sensitive in (
+        "SENSITIVE_KEY_AND_BODY",
+        "PRIVATE_KEY",
+        "PRIVATE_PROMPT",
+        "PRIVATE_REVIEWS",
+        "PRIVATE_QUESTION",
+    ):
+        assert sensitive not in caplog.text
 
 
 class FakeProvider:
